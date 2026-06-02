@@ -909,23 +909,33 @@ class TopologyEditor(ctk.CTkFrame):
                                 
                                 # Assign tags for visualization
                                 tags = []
-                                if owner == "tagged-devices":
-                                    if "server" in host.lower():
-                                        tags.append("tag:dgx-server")
-                                    elif "standard" in host.lower() or "client" in host.lower():
-                                        tags.append("tag:dgx-client")
+                                if len(parts) >= 6 and parts[5] and parts[5].strip() != "-":
+                                    t_list = [t.strip() for t in parts[5].split(",") if t.strip()]
+                                    for t in t_list:
+                                        if t.startswith("tag:"):
+                                            tags.append(t)
+                                        else:
+                                            tags.append(f"tag:{t}")
+                                
+                                # If no explicit tags, use heuristics
+                                if not tags:
+                                    if owner == "tagged-devices":
+                                        if "server" in host.lower():
+                                            tags.append("tag:dgx-server")
+                                        elif "standard" in host.lower() or "client" in host.lower():
+                                            tags.append("tag:dgx-client")
+                                        else:
+                                            tags.append("tag:ai-agent")
                                     else:
-                                        tags.append("tag:ai-agent")
-                                else:
-                                    # User-owned devices only get tagged if hostname explicitly dictates it
-                                    if "dgx-server" in host.lower() or "dgxserver" in host.lower():
-                                        tags.append("tag:dgx-server")
-                                    elif "nickpeterson-client" in host.lower():
-                                        tags.append("tag:nickpeterson-client")
-                                    elif "nickpeterson-server" in host.lower():
-                                        tags.append("tag:nickpeterson-server")
-                                    elif "ern-client" in host.lower() or "ernclient" in host.lower():
-                                        tags.append("tag:ern-client")
+                                        # User-owned devices only get tagged if hostname explicitly dictates it
+                                        if "dgx-server" in host.lower() or "dgxserver" in host.lower():
+                                            tags.append("tag:dgx-server")
+                                        elif "nickpeterson-client" in host.lower():
+                                            tags.append("tag:nickpeterson-client")
+                                        elif "nickpeterson-server" in host.lower():
+                                            tags.append("tag:nickpeterson-server")
+                                        elif "ern-client" in host.lower() or "ernclient" in host.lower():
+                                            tags.append("tag:ern-client")
                                 
                                 devices.append({
                                     'hostname': host,
