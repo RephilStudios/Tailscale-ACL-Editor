@@ -1,0 +1,102 @@
+{
+    "autogroup:admin": [
+        90.0,
+        56.0
+    ],
+    "autogroup:member": [
+        80,
+        200
+    ],
+    "device:reid-pc": [
+        920,
+        2360
+    ],
+    "device:bathhouse-pc": [
+        920,
+        80
+    ],
+    "device:campground-office": [
+        920,
+        200
+    ],
+    "device:chris-standard-pc-i440fx-piix-1996": [
+        920,
+        320
+    ],
+    "device:chrishomepc": [
+        920,
+        440
+    ],
+    "device:chrisofficepc": [
+        920,
+        560
+    ],
+    "device:city-hall-jump": [
+        920,
+        680
+    ],
+    "device:cityofmstqnas": [
+        920,
+        800
+    ],
+    "device:codyelitedesk": [
+        920,
+        920
+    ],
+    "device:codyworkhp": [
+        920,
+        1040
+    ],
+    "device:gta-5-server": [
+        920,
+        1160
+    ],
+    "device:gx10-d43c": [
+        920,
+        1280
+    ],
+    "device:homeassistant": [
+        920,
+        1400
+    ],
+    "device:iphone181": [
+        920,
+        1520
+    ],
+    "device:jordanpc": [
+        920,
+        1640
+    ],
+    "device:moto-g-5g-2022": [
+        920,
+        1760
+    ],
+    "device:nvsync-reid-pc": [
+        920,
+        1880
+    ],
+    "device:pbs": [
+        920,
+        2000
+    ],
+    "device:ps2023ngtypugz": [
+        920,
+        2120
+    ],
+    "device:pve": [
+        920,
+        2240
+    ],
+    "device:shinertech": [
+        920,
+        2480
+    ],
+    "device:win-8khh9l37n1k": [
+        920,
+        2600
+    ],
+    "device:windows-vm": [
+        920,
+        2720
+    ]
+}

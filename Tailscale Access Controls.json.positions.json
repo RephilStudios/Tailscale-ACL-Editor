@@ -1,0 +1,42 @@
+{
+    "autogroup:admin": [
+        360,
+        80
+    ],
+    "autogroup:member": [
+        360,
+        200
+    ],
+    "group:ern-access": [
+        640,
+        80
+    ],
+    "group:shiner-tech": [
+        640,
+        200
+    ],
+    "tag:nickpeterson-server": [
+        920,
+        680
+    ],
+    "tag:nickpeterson-client": [
+        920,
+        560
+    ],
+    "tag:ern-client": [
+        920,
+        440
+    ],
+    "tag:dgx-client": [
+        920,
+        200
+    ],
+    "tag:dgx-server": [
+        920,
+        320
+    ],
+    "tag:ai-agent": [
+        920,
+        80
+    ]
+}
