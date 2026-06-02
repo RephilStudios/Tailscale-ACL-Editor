@@ -26,9 +26,13 @@
             "autogroup:admin"
         ],
         "tag:dgx-server": [
-            "autogroup:admin"
+            "autogroup:admin",
+            "group:shiner-tech"
         ],
         "tag:ai-agent": [
+            "autogroup:admin"
+        ],
+        "tag:license-server": [
             "autogroup:admin"
         ]
     },

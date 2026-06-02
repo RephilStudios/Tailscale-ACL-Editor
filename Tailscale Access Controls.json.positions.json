@@ -16,8 +16,8 @@
         560
     ],
     "group:shiner-tech": [
-        640,
-        200
+        639.0,
+        200.0
     ],
     "chris.shiner@shinertechnologies.com": [
         360,
@@ -37,19 +37,19 @@
     ],
     "tag:ern-client": [
         920,
+        440
+    ],
+    "tag:dgx-client": [
+        920,
         200
+    ],
+    "tag:dgx-server": [
+        920,
+        320
     ],
     "tag:ai-agent": [
         920,
         80
-    ],
-    "tag:gdx-server": [
-        920,
-        440
-    ],
-    "tag:gdx-client": [
-        920,
-        320
     ],
     "device:reid-pc": [
         80,

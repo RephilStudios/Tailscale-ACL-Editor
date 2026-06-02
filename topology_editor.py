@@ -453,10 +453,31 @@ class TopologyEditor(ctk.CTkFrame):
             lbl_v = ctk.CTkLabel(f_details, text=v, font=ctk.CTkFont(size=11), anchor="w", justify="left")
             lbl_v.grid(row=i, column=1, sticky="nw", padx=10, pady=4)
 
+        ctk.CTkLabel(self.inspector, text="Assigned Tags:", font=ctk.CTkFont(weight="bold", size=11)).pack(anchor="w", padx=15, pady=(10, 0))
         if tags:
-            ctk.CTkLabel(self.inspector, text="Assigned Tags:", font=ctk.CTkFont(weight="bold", size=11)).pack(anchor="w", padx=15, pady=(10, 0))
             for t in tags:
                 ctk.CTkLabel(self.inspector, text=f"• {t}", font=ctk.CTkFont(size=11), anchor="w").pack(anchor="w", padx=25, pady=2)
+        else:
+            ctk.CTkLabel(self.inspector, text="None (untagged)", font=ctk.CTkFont(size=11, slant="italic"), anchor="w").pack(anchor="w", padx=25, pady=2)
+
+        ctk.CTkFrame(self.inspector, height=2, fg_color="#334155").pack(fill="x", padx=10, pady=10)
+        ctk.CTkButton(
+            self.inspector,
+            text="🔑 Manage Tag Owners",
+            fg_color="#3b82f6",
+            hover_color="#2563eb",
+            font=ctk.CTkFont(weight="bold"),
+            command=lambda: self.trigger_manage_device_tag_owners(node.name)
+        ).pack(pady=10, padx=20, fill="x")
+
+    def trigger_manage_device_tag_owners(self, device_name):
+        app = self.winfo_toplevel()
+        if hasattr(app, "manage_device_tag_owners"):
+            app.manage_device_tag_owners(device_name)
+            if self.refresh_callback:
+                self.refresh_callback()
+            self.load_data(self.acl_data, self.loaded_filepath)
+            self.show_node_inspector(device_name)
 
     def show_edge_inspector(self, edge_id):
         for widget in self.inspector.winfo_children():
@@ -517,6 +538,75 @@ class TopologyEditor(ctk.CTkFrame):
             command=lambda: self.delete_rule_action(edge.rule_index)
         ).pack(pady=10, padx=20, fill="x")
 
+    def delete_tag_from_devices_file(self, tag_name):
+        md_path = "Tailscale Devices.md"
+        if not os.path.exists(md_path):
+            return False
+        try:
+            with open(md_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+
+            new_lines = []
+            header_index = -1
+            separator_index = -1
+
+            for idx, line in enumerate(lines):
+                if "IP Address" in line and "Hostname" in line:
+                    header_index = idx
+                elif "---" in line and header_index != -1 and separator_index == -1:
+                    separator_index = idx
+
+            if header_index == -1:
+                return False
+
+            header_line = lines[header_index].strip()
+            has_tags_col = "Tags" in header_line
+            if not has_tags_col:
+                return True
+
+            for idx, line in enumerate(lines):
+                if idx <= separator_index or not line.strip().startswith("|"):
+                    new_lines.append(line)
+                    continue
+
+                parts = [p.strip() for p in line.split("|")]
+                if len(parts) >= 7:
+                    tags_str = parts[6].strip()
+                    if tags_str and tags_str != "-":
+                        t_list = [t.strip() for t in tags_str.split(",") if t.strip()]
+                        updated_tags = []
+                        changed = False
+                        for t in t_list:
+                            t_full = t if t.startswith("tag:") else f"tag:{t}"
+                            del_full = tag_name if tag_name.startswith("tag:") else f"tag:{tag_name}"
+                            if t_full == del_full:
+                                changed = True
+                            else:
+                                updated_tags.append(t)
+                        
+                        if changed:
+                            if not updated_tags:
+                                parts[6] = " - "
+                            else:
+                                parts[6] = f" {', '.join(updated_tags)} "
+                            new_line = "|".join(parts)
+                            if not new_line.endswith("\n"):
+                                new_line += "\n"
+                            new_lines.append(new_line)
+                        else:
+                            new_lines.append(line)
+                    else:
+                        new_lines.append(line)
+                else:
+                    new_lines.append(line)
+
+            with open(md_path, "w", encoding="utf-8") as f:
+                f.writelines(new_lines)
+            return True
+        except Exception as e:
+            print(f"Error deleting tag from devices: {e}")
+            return False
+
     # ---- ACTIONS CORE ----
     def delete_node_action(self, node_id):
         node = self.nodes.get(node_id)
@@ -550,6 +640,7 @@ class TopologyEditor(ctk.CTkFrame):
                     r["dst"] = new_dst
                     new_acls.append(r)
             self.acl_data["acls"] = new_acls
+            self.delete_tag_from_devices_file(node_id)
             
         elif node.type == 'user':
             # Remove from all groups

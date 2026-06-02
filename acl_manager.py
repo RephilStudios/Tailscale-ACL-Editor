@@ -145,6 +145,299 @@ class CustomDialog(ctk.CTkToplevel):
         self.destroy()
 
 
+class DeviceTagOwnersDialog(ctk.CTkToplevel):
+    """
+    Dialog to manage tag owners (tagOwners in ACL) for the tags of a device.
+    """
+    def __init__(self, parent, hostname, device_tags, acl_data, all_groups):
+        super().__init__(parent)
+        self.title(f"Manage Tag Owners: {hostname}")
+        self.geometry("520x450")
+        self.resizable(False, False)
+        self.configure(fg_color="#1e293b")
+
+        self.transient(parent)
+        self.grab_set()
+
+        self.hostname = hostname
+        self.device_tags = device_tags
+        self.acl_data = acl_data
+        self.all_groups = all_groups
+        self.saved = False
+
+        # Work on a copy of the tagOwners mapping to allow Cancel without side effects
+        self.temp_tag_owners = {}
+        tag_owners_section = acl_data.setdefault("tagOwners", {})
+        for t in self.device_tags:
+            self.temp_tag_owners[t] = list(tag_owners_section.get(t, []))
+
+        # Title
+        ctk.CTkLabel(
+            self,
+            text=f"MANAGE TAG OWNERS FOR {hostname.upper()}",
+            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
+            text_color="#60a5fa"
+        ).pack(pady=(15, 10))
+
+        if not self.device_tags:
+            ctk.CTkLabel(
+                self,
+                text="This device has no assigned tags.\n\nOnly tagged devices have tag owners. Assign tags to the physical device\nfirst, or manage tag owners directly from the Tags tab.",
+                font=ctk.CTkFont(family="Segoe UI", size=12, slant="italic"),
+                text_color="#ef4444",
+                justify="center"
+            ).pack(pady=40, padx=25)
+            
+            ctk.CTkButton(
+                self,
+                text="Close",
+                width=100,
+                fg_color="#475569",
+                hover_color="#334155",
+                text_color="white",
+                command=self.destroy
+            ).pack(pady=10)
+            
+            # Center dialog
+            self.center_dialog(parent)
+            self.wait_window()
+            return
+
+        # Tag Selector (if there are multiple tags)
+        self.selected_tag = self.device_tags[0]
+        if len(self.device_tags) > 1:
+            sel_frame = ctk.CTkFrame(self, fg_color="transparent")
+            sel_frame.pack(fill="x", padx=25, pady=5)
+            ctk.CTkLabel(
+                sel_frame,
+                text="Select Tag to Edit:",
+                font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+                text_color="#f8fafc"
+            ).pack(side="left", padx=(0, 10))
+            
+            self.tag_menu = ctk.CTkOptionMenu(
+                sel_frame,
+                values=self.device_tags,
+                command=self.on_tag_changed,
+                fg_color="#0f172a",
+                button_color="#334155",
+                button_hover_color="#475569",
+                dropdown_fg_color="#1e293b",
+                dropdown_hover_color="#334155"
+            )
+            self.tag_menu.pack(side="left", fill="x", expand=True)
+            self.tag_menu.set(self.selected_tag)
+        else:
+            ctk.CTkLabel(
+                self,
+                text=f"Editing Owners for: {self.selected_tag}",
+                font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+                text_color="#38bdf8"
+            ).pack(pady=(5, 5))
+
+        # Current Owners List
+        ctk.CTkLabel(
+            self,
+            text="Current Owners (Users/Groups):",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            text_color="#f8fafc"
+        ).pack(anchor="w", padx=25, pady=(5, 2))
+
+        self.owners_scroll = ctk.CTkScrollableFrame(
+            self,
+            width=450,
+            height=140,
+            fg_color="#0f172a",
+            border_width=1,
+            border_color="#334155"
+        )
+        self.owners_scroll.pack(padx=25, pady=5)
+
+        # Add Owner Frame
+        ctk.CTkLabel(
+            self,
+            text="Add Owner Group:",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            text_color="#f8fafc"
+        ).pack(anchor="w", padx=25, pady=(10, 2))
+
+        add_f = ctk.CTkFrame(self, fg_color="transparent")
+        add_f.pack(fill="x", padx=25, pady=2)
+
+        self.group_combo = ctk.CTkComboBox(
+            add_f,
+            values=[""] + self.all_groups,
+            width=320,
+            fg_color="#0f172a",
+            border_color="#334155",
+            dropdown_fg_color="#1e293b",
+            dropdown_hover_color="#334155"
+        )
+        self.group_combo.pack(side="left", padx=(0, 10))
+        if self.all_groups:
+            self.group_combo.set(self.all_groups[0])
+
+        btn_add = ctk.CTkButton(
+            add_f,
+            text="➕ Add",
+            width=80,
+            fg_color="#3b82f6",
+            hover_color="#2563eb",
+            text_color="white",
+            font=ctk.CTkFont(family="Segoe UI", weight="bold"),
+            command=self.add_group_owner
+        )
+        btn_add.pack(side="right")
+
+        # Or Custom Owner Box (email)
+        ctk.CTkLabel(
+            self,
+            text="Or add custom owner (e.g. user@domain.com, group:shiner-tech, autogroup:admin):",
+            font=ctk.CTkFont(family="Segoe UI", size=11, slant="italic"),
+            text_color="#94a3b8"
+        ).pack(anchor="w", padx=25, pady=(5, 0))
+
+        custom_f = ctk.CTkFrame(self, fg_color="transparent")
+        custom_f.pack(fill="x", padx=25, pady=2)
+
+        self.custom_entry = ctk.CTkEntry(
+            custom_f,
+            placeholder_text="user@example.com or group:name",
+            width=320,
+            fg_color="#0f172a",
+            border_color="#334155",
+            text_color="#f8fafc"
+        )
+        self.custom_entry.pack(side="left", padx=(0, 10))
+
+        btn_add_custom = ctk.CTkButton(
+            custom_f,
+            text="➕ Add",
+            width=80,
+            fg_color="#10b981",
+            hover_color="#059669",
+            text_color="white",
+            font=ctk.CTkFont(family="Segoe UI", weight="bold"),
+            command=self.add_custom_owner
+        )
+        btn_add_custom.pack(side="right")
+
+        # Bottom Action Buttons
+        btn_f = ctk.CTkFrame(self, fg_color="transparent")
+        btn_f.pack(pady=(20, 10), fill="x", padx=25)
+
+        btn_save = ctk.CTkButton(
+            btn_f,
+            text="Save Changes",
+            fg_color="#10b981",
+            hover_color="#059669",
+            text_color="white",
+            font=ctk.CTkFont(family="Segoe UI", weight="bold"),
+            command=self.save
+        )
+        btn_save.pack(side="right", padx=5)
+
+        btn_cancel = ctk.CTkButton(
+            btn_f,
+            text="Cancel",
+            fg_color="#475569",
+            hover_color="#334155",
+            text_color="white",
+            command=self.destroy
+        )
+        btn_cancel.pack(side="right", padx=5)
+
+        self.refresh_owners_list()
+        self.center_dialog(parent)
+        self.wait_window()
+
+    def center_dialog(self, parent):
+        self.update_idletasks()
+        parent_x = parent.winfo_rootx()
+        parent_y = parent.winfo_rooty()
+        parent_w = parent.winfo_width()
+        parent_h = parent.winfo_height()
+        w = self.winfo_width()
+        h = self.winfo_height()
+        x = parent_x + (parent_w - w) // 2
+        y = parent_y + (parent_h - h) // 2
+        self.geometry(f"+{x}+{y}")
+
+    def on_tag_changed(self, tag):
+        self.selected_tag = tag
+        self.refresh_owners_list()
+
+    def refresh_owners_list(self):
+        for w in self.owners_scroll.winfo_children():
+            w.destroy()
+
+        owners = self.temp_tag_owners.get(self.selected_tag, [])
+        if not owners:
+            ctk.CTkLabel(
+                self.owners_scroll,
+                text="No owners assigned to this tag (orphaned tag).",
+                font=ctk.CTkFont(slant="italic"),
+                text_color="#ef4444"
+            ).pack(pady=10)
+            return
+
+        for o in owners:
+            row = ctk.CTkFrame(self.owners_scroll, fg_color="transparent")
+            row.pack(fill="x", pady=2)
+            
+            disp_owner = o.replace("group:", "👥 ").replace("autogroup:", "⚙️ ").replace("user:", "👤 ")
+            ctk.CTkLabel(
+                row,
+                text=disp_owner,
+                font=ctk.CTkFont(family="Segoe UI", size=12),
+                text_color="#e2e8f0"
+            ).pack(side="left", padx=5)
+
+            btn_del = ctk.CTkButton(
+                row,
+                text="×",
+                width=20,
+                height=20,
+                fg_color="transparent",
+                text_color="#ef4444",
+                hover_color="#7f1d1d",
+                font=ctk.CTkFont(size=12, weight="bold"),
+                command=lambda owner_val=o: self.remove_owner(owner_val)
+            )
+            btn_del.pack(side="right", padx=5)
+
+    def add_group_owner(self):
+        val = self.group_combo.get().strip()
+        if val:
+            owners = self.temp_tag_owners.setdefault(self.selected_tag, [])
+            if val not in owners:
+                owners.append(val)
+                self.refresh_owners_list()
+
+    def add_custom_owner(self):
+        val = self.custom_entry.get().strip()
+        if val:
+            owners = self.temp_tag_owners.setdefault(self.selected_tag, [])
+            if val not in owners:
+                owners.append(val)
+                self.custom_entry.delete(0, "end")
+                self.refresh_owners_list()
+
+    def remove_owner(self, owner):
+        owners = self.temp_tag_owners.get(self.selected_tag, [])
+        if owner in owners:
+            owners.remove(owner)
+            self.refresh_owners_list()
+
+    def save(self):
+        # Commit temporary mapping back to original acl_data
+        tag_owners_section = self.acl_data.setdefault("tagOwners", {})
+        for t, owners in self.temp_tag_owners.items():
+            tag_owners_section[t] = owners
+        self.saved = True
+        self.destroy()
+
+
 class ACLManagerV5(ctk.CTk):
     """
     Main Application Window containing the refurbished dashboard.
@@ -1454,6 +1747,19 @@ class ACLManagerV5(ctk.CTk):
                     text_color=("#64748b", "#94a3b8")
                 ).pack(side="left", fill="y")
 
+            btn_manage = ctk.CTkButton(
+                f_tags,
+                text="🔑",
+                width=28,
+                height=28,
+                fg_color="transparent",
+                text_color=("#475569", "#cbd5e1"),
+                hover_color=("#cbd5e1", "#334155"),
+                font=ctk.CTkFont(size=14),
+                command=lambda dev_name=dev.get("hostname"): self.manage_device_tag_owners(dev_name)
+            )
+            btn_manage.pack(side="right", padx=5, pady=8)
+
     # ---- TAG INSPECTOR ACTIONS ----
     def select_tag(self, tag):
         self.current_tag = tag
@@ -1641,6 +1947,7 @@ class ACLManagerV5(ctk.CTk):
                     new_dst.append(d_str)
             r["dst"] = new_dst
 
+        self.rename_tag_in_devices_file(old, new)
         self.refresh_ui()
         self.select_tag(new)
 
@@ -1661,6 +1968,7 @@ class ACLManagerV5(ctk.CTk):
                     new_acls.append(r)
 
             self.acl_data["acls"] = new_acls
+            self.delete_tag_from_devices_file(t)
             self.current_tag = None
             self.refresh_ui()
 
@@ -1812,6 +2120,34 @@ class ACLManagerV5(ctk.CTk):
                     self.acl_data["groups"][group_name].remove(user_email)
                     self.refresh_ui()
 
+    def manage_device_tag_owners(self, hostname):
+        clean_hostname = hostname.split()[0] if hostname else ""
+        devices = []
+        if hasattr(self, "cli_devices") and self.cli_devices:
+            devices.extend(self.cli_devices)
+        if hasattr(self, "topology_editor"):
+            devices.extend(self.topology_editor.get_devices_list())
+
+        device = None
+        for d in devices:
+            d_host = d.get("hostname", "")
+            d_clean = d_host.split()[0] if d_host else ""
+            if d_clean == clean_hostname:
+                device = d
+                break
+
+        if not device:
+            messagebox.showerror("Error", f"Device '{hostname}' not found.")
+            return
+
+        device_tags = device.get("tags", [])
+        all_groups = list(self.acl_data.get("groups", {}).keys())
+
+        d = DeviceTagOwnersDialog(self, hostname, device_tags, self.acl_data, all_groups)
+        if d.saved:
+            self.refresh_ui()
+            messagebox.showinfo("Success", f"Tag owners updated for device '{hostname}' tags.")
+
     # ---- DEVICE LIST ACTIONS ----
     def fetch_devices_interactive(self):
         self.fetch_devices()
@@ -1902,6 +2238,45 @@ class ACLManagerV5(ctk.CTk):
 
             self.refresh_ui()
 
+    def validate_and_fix_tag_owners(self):
+        """
+        Scans all ACL rules and SSH rules for tag references.
+        Any tag found that is not in tagOwners is automatically added
+        with 'autogroup:admin' as the default owner.
+        Returns a list of tags that were auto-added (empty list if none).
+        """
+        tag_owners = self.acl_data.setdefault("tagOwners", {})
+        referenced_tags = set()
+
+        # Collect tags from ACL rules (src and dst)
+        for rule in self.acl_data.get("acls", []):
+            for src in rule.get("src", []):
+                if src.startswith("tag:"):
+                    referenced_tags.add(src)
+            for dst in rule.get("dst", []):
+                # dst can be "tag:name:port" or "tag:name:*", strip the port
+                parts = dst.split(":")
+                if len(parts) >= 2 and parts[0] == "tag":
+                    referenced_tags.add(f"tag:{parts[1]}")
+
+        # Collect tags from SSH rules (dst)
+        for rule in self.acl_data.get("ssh", []):
+            for src in rule.get("src", []):
+                if src.startswith("tag:"):
+                    referenced_tags.add(src)
+            for dst in rule.get("dst", []):
+                if dst.startswith("tag:"):
+                    referenced_tags.add(dst)
+
+        # Find any missing tags
+        auto_added = []
+        for tag in sorted(referenced_tags):
+            if tag not in tag_owners:
+                tag_owners[tag] = ["autogroup:admin"]
+                auto_added.append(tag)
+
+        return auto_added
+
     def save_json(self):
         p = filedialog.asksaveasfilename(
             defaultextension=".json", filetypes=[("JSON Files", "*.json")]
@@ -1909,6 +2284,19 @@ class ACLManagerV5(ctk.CTk):
         if p:
             self.current_filepath = p
             self.apply_raw()
+
+            # Auto-fix any tags referenced in rules but missing from tagOwners
+            auto_added = self.validate_and_fix_tag_owners()
+            if auto_added:
+                tag_list = "\n  • " + "\n  • ".join(auto_added)
+                messagebox.showwarning(
+                    "Auto-Fixed Missing Tag Owners",
+                    f"The following tags were referenced in rules but missing from tagOwners. "
+                    f"They have been automatically added with 'autogroup:admin' as the default owner:{tag_list}\n\n"
+                    f"You can manage their owners in the Network Tags panel."
+                )
+                self.refresh_ui()
+
             with open(p, "w", encoding="utf-8") as f:
                 json.dump(self.acl_data, f, indent=4)
             self.lbl_status.configure(text=f"Saved Profile:\n{os.path.basename(p)}")
@@ -2422,17 +2810,20 @@ class ACLManagerV5(ctk.CTk):
             except Exception as ex:
                 messagebox.showerror("Error Applying Actions", f"An error occurred while executing changes: {ex}")
 
-    def update_device_tag_in_file(self, hostname, tag_name):
+    def update_device_tag_in_file(self, hostname, tag_name, new_owner=None):
         md_path = "Tailscale Devices.md"
         if not os.path.exists(md_path):
             return False
         try:
+            # Clean hostname to prevent mismatches (e.g. from (Self) suffix or spaces)
+            clean_hostname = hostname.split()[0] if hostname else ""
             with open(md_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             new_lines = []
             header_index = -1
             separator_index = -1
+            updated = False
 
             for idx, line in enumerate(lines):
                 if "IP Address" in line and "Hostname" in line:
@@ -2458,9 +2849,15 @@ class ACLManagerV5(ctk.CTk):
                 parts = [p.strip() for p in line.split("|")]
                 if len(parts) >= 5:
                     row_host = parts[2].split()[0]
-                    if row_host == hostname:
-                        # Set owner to tagged-devices
-                        parts[3] = "tagged-devices"
+                    if row_host == clean_hostname:
+                        updated = True
+                        # Set owner
+                        if new_owner:
+                            parts[3] = new_owner
+                        elif tag_name.strip() == "-":
+                            parts[3] = "reid.sutton@shinertechnologies.com"
+                        else:
+                            parts[3] = "tagged-devices"
 
                         # Ensure enough space for Tags column
                         while len(parts) < 8:
@@ -2484,11 +2881,151 @@ class ACLManagerV5(ctk.CTk):
                 else:
                     new_lines.append(line)
 
+            if not updated:
+                return False
+
             with open(md_path, "w", encoding="utf-8") as f:
                 f.writelines(new_lines)
             return True
         except Exception as e:
             print(f"Error updating device tag: {e}")
+            return False
+
+    def rename_tag_in_devices_file(self, old_tag, new_tag):
+        md_path = "Tailscale Devices.md"
+        if not os.path.exists(md_path):
+            return False
+        try:
+            with open(md_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+
+            new_lines = []
+            header_index = -1
+            separator_index = -1
+
+            for idx, line in enumerate(lines):
+                if "IP Address" in line and "Hostname" in line:
+                    header_index = idx
+                elif "---" in line and header_index != -1 and separator_index == -1:
+                    separator_index = idx
+
+            if header_index == -1:
+                return False
+
+            header_line = lines[header_index].strip()
+            has_tags_col = "Tags" in header_line
+            if not has_tags_col:
+                return True
+
+            for idx, line in enumerate(lines):
+                if idx <= separator_index or not line.strip().startswith("|"):
+                    new_lines.append(line)
+                    continue
+
+                parts = [p.strip() for p in line.split("|")]
+                if len(parts) >= 7:
+                    tags_str = parts[6].strip()
+                    if tags_str and tags_str != "-":
+                        t_list = [t.strip() for t in tags_str.split(",") if t.strip()]
+                        updated_tags = []
+                        changed = False
+                        for t in t_list:
+                            t_full = t if t.startswith("tag:") else f"tag:{t}"
+                            old_full = old_tag if old_tag.startswith("tag:") else f"tag:{old_tag}"
+                            new_full = new_tag if new_tag.startswith("tag:") else f"tag:{new_tag}"
+                            if t_full == old_full:
+                                updated_tags.append(new_full)
+                                changed = True
+                            else:
+                                updated_tags.append(t)
+                        
+                        if changed:
+                            parts[6] = f" {', '.join(updated_tags)} "
+                            new_line = "|".join(parts)
+                            if not new_line.endswith("\n"):
+                                new_line += "\n"
+                            new_lines.append(new_line)
+                        else:
+                            new_lines.append(line)
+                    else:
+                        new_lines.append(line)
+                else:
+                    new_lines.append(line)
+
+            with open(md_path, "w", encoding="utf-8") as f:
+                f.writelines(new_lines)
+            return True
+        except Exception as e:
+            print(f"Error renaming tag in devices: {e}")
+            return False
+
+    def delete_tag_from_devices_file(self, tag_name):
+        md_path = "Tailscale Devices.md"
+        if not os.path.exists(md_path):
+            return False
+        try:
+            with open(md_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+
+            new_lines = []
+            header_index = -1
+            separator_index = -1
+
+            for idx, line in enumerate(lines):
+                if "IP Address" in line and "Hostname" in line:
+                    header_index = idx
+                elif "---" in line and header_index != -1 and separator_index == -1:
+                    separator_index = idx
+
+            if header_index == -1:
+                return False
+
+            header_line = lines[header_index].strip()
+            has_tags_col = "Tags" in header_line
+            if not has_tags_col:
+                return True
+
+            for idx, line in enumerate(lines):
+                if idx <= separator_index or not line.strip().startswith("|"):
+                    new_lines.append(line)
+                    continue
+
+                parts = [p.strip() for p in line.split("|")]
+                if len(parts) >= 7:
+                    tags_str = parts[6].strip()
+                    if tags_str and tags_str != "-":
+                        t_list = [t.strip() for t in tags_str.split(",") if t.strip()]
+                        updated_tags = []
+                        changed = False
+                        for t in t_list:
+                            t_full = t if t.startswith("tag:") else f"tag:{t}"
+                            del_full = tag_name if tag_name.startswith("tag:") else f"tag:{tag_name}"
+                            if t_full == del_full:
+                                changed = True
+                            else:
+                                updated_tags.append(t)
+                        
+                        if changed:
+                            if not updated_tags:
+                                parts[6] = " - "
+                            else:
+                                parts[6] = f" {', '.join(updated_tags)} "
+                            new_line = "|".join(parts)
+                            if not new_line.endswith("\n"):
+                                new_line += "\n"
+                            new_lines.append(new_line)
+                        else:
+                            new_lines.append(line)
+                    else:
+                        new_lines.append(line)
+                else:
+                    new_lines.append(line)
+
+            with open(md_path, "w", encoding="utf-8") as f:
+                f.writelines(new_lines)
+            return True
+        except Exception as e:
+            print(f"Error deleting tag from devices: {e}")
             return False
 
     def handle_query_error(self, err_msg):
