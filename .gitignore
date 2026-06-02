@@ -68,3 +68,10 @@ dmypy.json
 
 # Tailscale Editor Local Configurations
 .last_config.txt
+
+# Sensitive network data - never commit to version control
+Tailscale Access Controls.json
+Tailscale Access Controls Old.json
+*.positions.json
+Tailscale Devices.md
+Network Map.md
