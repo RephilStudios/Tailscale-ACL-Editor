@@ -234,7 +234,7 @@ class TopologyEditor(ctk.CTkFrame):
         self.hsb.grid(row=1, column=0, sticky="ew")
         
         self.canvas.configure(xscrollcommand=self.hsb.set, yscrollcommand=self.vsb.set)
-        self.canvas.configure(scrollregion=(0, 0, 3000, 2400))
+        self.canvas.configure(scrollregion=(0, 0, 4000, 4000))
 
         # Canvas Binds
         self.canvas.bind("<Button-1>", self.on_canvas_press)
@@ -345,12 +345,17 @@ class TopologyEditor(ctk.CTkFrame):
         for u in members:
             f = ctk.CTkFrame(scroll, fg_color="transparent")
             f.pack(fill="x", pady=2)
-            ctk.CTkLabel(f, text=u, font=ctk.CTkFont(size=11), anchor="w").pack(side="left", fill="x", expand=True)
+            # Pack delete button FIRST (right-anchored) so its width is reserved
+            # before the label fills the remaining space — prevents email overflow.
             btn_del = ctk.CTkButton(
-                f, text="×", width=20, height=20, fg_color="#ef4444", hover_color="#dc2626",
+                f, text="×", width=24, height=22, fg_color="#ef4444", hover_color="#dc2626",
                 command=lambda usr=u: self.remove_user_from_group_action(node.id, usr)
             )
-            btn_del.pack(side="right")
+            btn_del.pack(side="right", padx=(4, 0))
+            ctk.CTkLabel(
+                f, text=u, font=ctk.CTkFont(size=11), anchor="w",
+                wraplength=155
+            ).pack(side="left", fill="x", expand=True)
 
         # Add member input
         add_f = ctk.CTkFrame(self.inspector, fg_color="transparent")
@@ -890,6 +895,7 @@ class TopologyEditor(ctk.CTkFrame):
             self.layout_new_nodes()
 
         self.rebuild_edges()
+        self._update_scroll_region()
         self.redraw_canvas()
 
     def layout_new_nodes(self):
@@ -1043,7 +1049,7 @@ class TopologyEditor(ctk.CTkFrame):
     # ---- LAYOUT & PERSISTENCE ----
     def apply_auto_layout(self, save=True):
         # 1. Group nodes into logical columns (Devices on the left)
-        col0_nodes = []  # Devices (Leftmost)
+        col0_nodes = []  # Devices (Leftmost) - may span 2 sub-columns
         col1_nodes = []  # Users & Autogroups
         col2_nodes = []  # Groups
         col3_nodes = []  # Tags
@@ -1058,29 +1064,74 @@ class TopologyEditor(ctk.CTkFrame):
             elif node.type == 'tag':
                 col3_nodes.append(nid)
 
-        # Sort names alphabetically for clean layout
+        # Sort devices and tags alphabetically
         col0_nodes.sort()
-        col1_nodes.sort()
         col2_nodes.sort()
         col3_nodes.sort()
 
-        # Lay out coordinates
-        col_x = [80, 360, 640, 920]
+        # Sort users by group membership so members of the same group sit together
+        # vertically, making group → user edge routing much cleaner.
+        # Order: autogroups first, then users clustered by primary group (alphabetically),
+        # then ungrouped users last.
+        groups_data = self.acl_data.get("groups", {})
+        sorted_groups = sorted(groups_data.keys())  # deterministic group order
+
+        def user_sort_key(nid):
+            node = self.nodes[nid]
+            if node.type == 'autogroup':
+                return (0, nid)  # autogroups always first
+            # Find the first (alphabetically earliest) group this user belongs to
+            for g in sorted_groups:
+                if nid in groups_data.get(g, []):
+                    return (1, g, nid)   # cluster by group, then by name within group
+            return (2, "", nid)          # ungrouped users last
+
+        col1_nodes.sort(key=user_sort_key)
+
         y_start = 80
         y_gap = 120
 
-        for col_idx, nids in enumerate([col0_nodes, col1_nodes, col2_nodes, col3_nodes]):
-            cx = col_x[col_idx]
+        # --- Devices: split into two sub-columns if there are more than 10 ---
+        max_per_device_col = 10
+        dev_col_x = [80, 240]  # two device sub-columns
+        for i, nid in enumerate(col0_nodes):
+            sub_col = i // max_per_device_col  # 0 or 1
+            sub_col = min(sub_col, len(dev_col_x) - 1)
+            cx = dev_col_x[sub_col]
+            row = i % max_per_device_col
+            self.nodes[nid].x = cx
+            self.nodes[nid].y = y_start + row * y_gap
+            self.coordinate_cache[nid] = (cx, y_start + row * y_gap)
+
+        # Shift right columns further right if devices took 2 sub-columns
+        device_cols_used = 2 if len(col0_nodes) > max_per_device_col else 1
+        base_x = 80 + device_cols_used * 180  # 260 or 440
+
+        col_x_right = [base_x, base_x + 280, base_x + 560]
+        for col_idx, nids in enumerate([col1_nodes, col2_nodes, col3_nodes]):
+            cx = col_x_right[col_idx]
             for i, nid in enumerate(nids):
                 self.nodes[nid].x = cx
                 self.nodes[nid].y = y_start + i * y_gap
                 self.coordinate_cache[nid] = (cx, y_start + i * y_gap)
 
         self.rebuild_edges()
+        self._update_scroll_region()
         self.redraw_canvas()
         
         if save:
             self.save_positions()
+
+    def _update_scroll_region(self):
+        """Expands the canvas scrollregion to always contain all node positions."""
+        if not self.nodes:
+            return
+        max_x = max((n.x for n in self.nodes.values()), default=0) + 400
+        max_y = max((n.y for n in self.nodes.values()), default=0) + 400
+        # Never shrink below a reasonable minimum
+        max_x = max(max_x, 2000)
+        max_y = max(max_y, 2000)
+        self.canvas.configure(scrollregion=(0, 0, max_x, max_y))
 
     def get_positions_filepath(self):
         if self.loaded_filepath:
@@ -1395,11 +1446,42 @@ class TopologyEditor(ctk.CTkFrame):
             )
             
         else: # user or autogroup
-            self.canvas.create_text(
-                x + 8 * self.zoom_factor, content_y + 14 * self.zoom_factor,
-                text=node.name, fill=text_sub_color, font=("Segoe UI", font_size_normal), anchor="w",
-                tags=(f"node_visual:{node_id}", f"node:{node_id}")
-            )
+            if node.type == 'user':
+                # Show which groups this user belongs to (instead of repeating full email)
+                user_groups = [
+                    g for g, members in self.acl_data.get("groups", {}).items()
+                    if node.id in members
+                ]
+                if user_groups:
+                    disp_g = user_groups[0].replace("group:", "")
+                    if len(disp_g) > 20:
+                        disp_g = disp_g[:17] + "..."
+                    self.canvas.create_text(
+                        x + 8 * self.zoom_factor, content_y,
+                        text=f"in: {disp_g}", fill=text_sub_color, font=("Segoe UI", font_size_normal), anchor="w",
+                        tags=(f"node_visual:{node_id}", f"node:{node_id}")
+                    )
+                    if len(user_groups) > 1:
+                        self.canvas.create_text(
+                            x + 8 * self.zoom_factor, content_y + 12 * self.zoom_factor,
+                            text=f"  +{len(user_groups)-1} more group(s)", fill=text_muted_color,
+                            font=("Segoe UI", font_size_normal, "italic"), anchor="w",
+                            tags=(f"node_visual:{node_id}", f"node:{node_id}")
+                        )
+                else:
+                    self.canvas.create_text(
+                        x + 8 * self.zoom_factor, content_y,
+                        text="No group membership", fill=text_muted_color,
+                        font=("Segoe UI", font_size_normal, "italic"), anchor="w",
+                        tags=(f"node_visual:{node_id}", f"node:{node_id}")
+                    )
+            else:  # autogroup
+                self.canvas.create_text(
+                    x + 8 * self.zoom_factor, content_y,
+                    text="Built-in Tailscale group", fill=text_muted_color,
+                    font=("Segoe UI", font_size_normal, "italic"), anchor="w",
+                    tags=(f"node_visual:{node_id}", f"node:{node_id}")
+                )
 
         # 5. Connectors (Pins)
         pin_fill = self.blend_color("#10b981", df)

@@ -2149,6 +2149,39 @@ class ACLManagerV5(ctk.CTk):
             messagebox.showinfo("Success", f"Tag owners updated for device '{hostname}' tags.")
 
     # ---- DEVICE LIST ACTIONS ----
+    def _build_md_tag_map(self):
+        """Read Tailscale Devices.md and return {hostname_lower: [tag, ...]} for devices with tags."""
+        tag_map = {}
+        md_path = "Tailscale Devices.md"
+        if not os.path.exists(md_path):
+            return tag_map
+        try:
+            with open(md_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    if not line.startswith("|") or "IP Address" in line or "---" in line:
+                        continue
+                    parts = [p.strip() for p in line.split("|") if p.strip()]
+                    # Columns: IP, Hostname, Owner, OS, Status, Tags
+                    if len(parts) < 6:
+                        continue
+                    hostname = parts[1].split()[0].lower()
+                    tags_raw = parts[5]
+                    if not tags_raw or tags_raw == "-":
+                        continue
+                    tags = []
+                    for t in tags_raw.split(","):
+                        t = t.strip()
+                        if not t or t == "-":
+                            continue
+                        if not t.startswith("tag:"):
+                            t = f"tag:{t}"
+                        tags.append(t)
+                    if tags:
+                        tag_map[hostname] = tags
+        except Exception:
+            pass
+        return tag_map
+
     def fetch_devices_interactive(self):
         self.fetch_devices()
         self.refresh_devices_table()
@@ -2167,12 +2200,29 @@ class ACLManagerV5(ctk.CTk):
                 peers = data.get("Peer", {})
                 self_node = data.get("Self", {})
 
+                # Build UserID → LoginName lookup from the top-level User map
+                user_map = data.get("User", {})
+
+                def resolve_owner(node):
+                    """Return a human-readable owner login name from the node's UserID."""
+                    uid = node.get("UserID", node.get("User", 0))
+                    if isinstance(uid, int) and uid != 0:
+                        user_entry = user_map.get(str(uid), {})
+                        login = user_entry.get("LoginName", "")
+                        if login:
+                            return login
+                    # Fallback: if User is already a string (unlikely but safe)
+                    if isinstance(uid, str) and uid:
+                        return uid
+                    return ""
+
                 def parse_dev(node, label=""):
                     host = f"{node.get('HostName', 'Unknown')} ({label})" if label else node.get("HostName", "Unknown")
                     ips = node.get("TailscaleIPs", [""])
                     os_type = node.get("OS", "Unknown")
-                    tags = node.get("Tags", [])
-                    owner = node.get("User", "")
+                    # Tags can be null in the JSON — normalize to an empty list
+                    tags = node.get("Tags") or []
+                    owner = resolve_owner(node)
 
                     return {
                         'hostname': host,
@@ -2186,6 +2236,18 @@ class ACLManagerV5(ctk.CTk):
                 self.cli_devices.append(parse_dev(self_node, "Self"))
                 for v in peers.values():
                     self.cli_devices.append(parse_dev(v))
+
+                # Enrich CLI devices that have no tags with data from the local MD file.
+                # Tailscale CLI often returns "Tags": null even for tagged devices when
+                # the ACL system manages tagging — the MD file acts as the source of truth.
+                md_tag_map = self._build_md_tag_map()
+                for dev in self.cli_devices:
+                    if not dev.get("tags"):
+                        # Strip the "(Self)" label suffix added by parse_dev
+                        base_host = dev["hostname"].split(" (")[0].lower()
+                        md_tags = md_tag_map.get(base_host, [])
+                        if md_tags:
+                            dev["tags"] = md_tags
 
                 messagebox.showinfo("Success", f"Successfully loaded {len(self.cli_devices)} devices from Tailscale status CLI.")
             else:

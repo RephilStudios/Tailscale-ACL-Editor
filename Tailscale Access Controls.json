@@ -1,0 +1,146 @@
+{
+    "groups": {
+        "group:ern-access": [
+            "reid.sutton@shinertechnologies.com"
+        ],
+        "group:shiner-tech": [
+            "reid.sutton@shinertechnologies.com",
+            "chris.shiner@shinertechnologies.com",
+            "cody.poupore@shinertechnologies.com"
+        ],
+        "group:peterson": [
+            "nick.peterson@outlook.com"
+        ]
+    },
+    "tagOwners": {
+        "tag:nickpeterson-server": [
+            "autogroup:admin",
+            "group:shiner-tech"
+        ],
+        "tag:nickpeterson-client": [
+            "autogroup:admin",
+            "group:shiner-tech"
+        ],
+        "tag:ern-client": [
+            "autogroup:admin",
+            "group:shiner-tech"
+        ],
+        "tag:ai-agent": [
+            "autogroup:admin",
+            "group:shiner-tech"
+        ],
+        "tag:license-server": [
+            "autogroup:admin",
+            "group:shiner-tech"
+        ]
+    },
+    "acls": [
+        {
+            "action": "accept",
+            "src": [
+                "autogroup:admin"
+            ],
+            "dst": [
+                "tag:license-server:*"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "group:ern-access"
+            ],
+            "dst": [
+                "tag:license-server:8000"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "group:shiner-tech"
+            ],
+            "dst": [
+                "tag:nickpeterson-server:*"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "tag:nickpeterson-client"
+            ],
+            "dst": [
+                "tag:nickpeterson-server:*"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "tag:ern-client"
+            ],
+            "dst": [
+                "tag:license-server:8000"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "tag:ai-agent"
+            ],
+            "dst": [
+                "tag:license-server:8000"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "tag:nickpeterson-server"
+            ],
+            "dst": [
+                "tag:license-server:8005"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "group:shiner-tech"
+            ],
+            "dst": [
+                "tag:license-server:*"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "group:peterson"
+            ],
+            "dst": [
+                "tag:nickpeterson-client:*"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "autogroup:member"
+            ],
+            "dst": [
+                "autogroup:member:*"
+            ]
+        }
+    ],
+    "ssh": [
+        {
+            "action": "check",
+            "src": [
+                "autogroup:admin"
+            ],
+            "dst": [
+                "autogroup:self",
+                "tag:ai-agent",
+                "tag:license-server"
+            ],
+            "users": [
+                "autogroup:nonroot",
+                "root"
+            ]
+        }
+    ]
+}
