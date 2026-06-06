@@ -136,6 +136,24 @@
             "dst": [
                 "tag:nickpeterson-server:*"
             ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "tag:shiner-proxmox"
+            ],
+            "dst": [
+                "tag:shiner-proxmox:*"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "group:shiner-tech"
+            ],
+            "dst": [
+                "group:shiner-tech:*"
+            ]
         }
     ],
     "ssh": [

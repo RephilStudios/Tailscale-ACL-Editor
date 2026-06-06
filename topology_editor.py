@@ -97,6 +97,87 @@ class ConnectionLinkDialog(ctk.CTkToplevel):
         self.destroy()
 
 
+class UserGroupLinkDialog(ctk.CTkToplevel):
+    def __init__(self, parent, src_name, dst_name):
+        super().__init__(parent)
+        self.title("Define Connection Type")
+        self.geometry("460x180")
+        self.resizable(False, False)
+
+        # Center the dialog on the parent window
+        self.transient(parent)
+        self.grab_set()
+
+        self.choice = None  # Will be 'acl', 'member', or None
+
+        self.configure(fg_color="#1e293b")
+
+        lbl = ctk.CTkLabel(
+            self,
+            text=f"Choose the type of link to create:\n\n{src_name} → {dst_name}",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color="#f8fafc",
+            justify="center",
+        )
+        lbl.pack(pady=(20, 15), padx=20)
+
+        btn_frame = ctk.CTkFrame(self, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=20, pady=10)
+
+        btn_acl = ctk.CTkButton(
+            btn_frame,
+            text="Access Rule",
+            fg_color="#10b981",
+            hover_color="#059669",
+            text_color="#ffffff",
+            font=ctk.CTkFont(weight="bold"),
+            command=self.on_acl,
+        )
+        btn_acl.pack(side="left", expand=True, padx=5)
+
+        btn_member = ctk.CTkButton(
+            btn_frame,
+            text="Group Member",
+            fg_color="#c084fc",
+            hover_color="#a855f7",
+            text_color="#ffffff",
+            font=ctk.CTkFont(weight="bold"),
+            command=self.on_member,
+        )
+        btn_member.pack(side="left", expand=True, padx=5)
+
+        btn_cancel = ctk.CTkButton(
+            btn_frame,
+            text="Cancel",
+            fg_color="#475569",
+            hover_color="#334155",
+            text_color="#ffffff",
+            command=self.destroy,
+        )
+        btn_cancel.pack(side="left", expand=True, padx=5)
+
+        self.update_idletasks()
+        parent_x = parent.winfo_rootx()
+        parent_y = parent.winfo_rooty()
+        parent_w = parent.winfo_width()
+        parent_h = parent.winfo_height()
+        w = self.winfo_width()
+        h = self.winfo_height()
+        x = parent_x + (parent_w - w) // 2
+        y = parent_y + (parent_h - h) // 2
+        self.geometry(f"+{x}+{y}")
+
+        self.wait_window()
+
+    def on_acl(self):
+        self.choice = "acl"
+        self.destroy()
+
+    def on_member(self):
+        self.choice = "member"
+        self.destroy()
+
+
 class Node:
     def __init__(self, node_id, name, node_type, x=0, y=0, details=None):
         self.id = node_id
@@ -2111,7 +2192,7 @@ class TopologyEditor(ctk.CTkFrame):
 
         # 1. Check if clicked a pin to start connecting (with a generous hit-test radius of 10px)
         items_pin = self.canvas.find_overlapping(cx - 10, cy - 10, cx + 10, cy + 10)
-        for item in items_pin:
+        for item in reversed(items_pin):
             tags = self.canvas.gettags(item)
             # Find output pin tag
             for tag in tags:
@@ -2127,7 +2208,7 @@ class TopologyEditor(ctk.CTkFrame):
 
         # 2. Check if clicked a node box or any part of a node (with a generous hit-test radius of 10px)
         clicked_node_id = None
-        for item in items_pin:
+        for item in reversed(items_pin):
             tags = self.canvas.gettags(item)
             for tag in tags:
                 if tag.startswith("node_visual:"):
@@ -2149,7 +2230,7 @@ class TopologyEditor(ctk.CTkFrame):
 
         # 3. Check if clicked an edge line
         clicked_edge_id = None
-        for item in items_pin:
+        for item in reversed(items_pin):
             tags = self.canvas.gettags(item)
             for tag in tags:
                 if tag.startswith("edge:"):
@@ -2193,6 +2274,8 @@ class TopologyEditor(ctk.CTkFrame):
             for e in self.edges:
                 if e.src_id == self.drag_node_id or e.dst_id == self.drag_node_id:
                     self.draw_edge(e)
+                    self.canvas.tag_lower(f"edge_visual:{e.id}")
+            self.canvas.tag_lower("grid")
 
     def on_canvas_release(self, event):
         cx = self.canvas.canvasx(event.x)
@@ -2206,7 +2289,7 @@ class TopologyEditor(ctk.CTkFrame):
             # Find destination node release target (with a generous 12px radius)
             dest_node_id = None
             items = self.canvas.find_overlapping(cx - 12, cy - 12, cx + 12, cy + 12)
-            for item in items:
+            for item in reversed(items):
                 tags = self.canvas.gettags(item)
                 for tag in tags:
                     if tag.startswith("node_visual:"):
@@ -2232,12 +2315,18 @@ class TopologyEditor(ctk.CTkFrame):
         if not src or not dst:
             return
 
-        # 1. Connect User node to Group node (Membership)
+        # 1. Connect User node to Group node (Membership or ACL)
         if src.type == "user" and dst.type == "group":
-            if src_id not in self.acl_data["groups"][dst_id]:
-                self.acl_data["groups"][dst_id].append(src_id)
-                self.trigger_refresh()
-                self.select_node(dst_id)
+            dialog = UserGroupLinkDialog(self.winfo_toplevel(), src.name, dst.name)
+            choice = dialog.choice
+            
+            if choice == "member":
+                if src_id not in self.acl_data["groups"][dst_id]:
+                    self.acl_data["groups"][dst_id].append(src_id)
+                    self.trigger_refresh()
+                    self.select_node(dst_id)
+            elif choice == "acl":
+                self.create_acl_rule_dialog(src_id, dst_id)
             return
 
         # 2. Connect Group/User node to Tag node (Ownership or ACL)
@@ -2284,6 +2373,11 @@ class TopologyEditor(ctk.CTkFrame):
                 self.select_node(src_id)
             return
 
+        # 5. Connect Group/Autogroup/User/Tag to Group/Autogroup/User (ACL Access Rule)
+        if src.type in ["group", "autogroup", "user", "tag"] and dst.type in ["group", "autogroup", "user"]:
+            self.create_acl_rule_dialog(src_id, dst_id)
+            return
+
     def create_acl_rule_dialog(self, src_id, dst_id):
         # Prompt for ports using beautiful CTkInputDialog to prevent focus lock-up
         dialog = ctk.CTkInputDialog(
@@ -2320,7 +2414,7 @@ class TopologyEditor(ctk.CTkFrame):
 
         items = self.canvas.find_overlapping(cx - 10, cy - 10, cx + 10, cy + 10)
         hovered_pin = None
-        for item in items:
+        for item in reversed(items):
             tags = self.canvas.gettags(item)
             if "pin" in tags:
                 hovered_pin = item
