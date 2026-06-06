@@ -1186,6 +1186,65 @@ class TopologyEditor(ctk.CTkFrame):
     def get_devices_list(self):
         """Attempts to parse live devices from CLI or falls back to reading Devices.md"""
         devices = []
+        # First try Tailscale CLI
+        try:
+            result = subprocess.run(
+                ["tailscale", "status", "--json"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                import json as _json
+
+                data = _json.loads(result.stdout)
+                peers = data.get("Peer", {})
+                self_node = data.get("Self", {})
+                user_map = data.get("User", {})
+
+                def resolve_owner(node):
+                    uid = node.get("UserID", node.get("User", 0))
+                    if isinstance(uid, int) and uid != 0:
+                        user_entry = user_map.get(str(uid), {})
+                        login = user_entry.get("LoginName", "")
+                        if login:
+                            return login
+                    if isinstance(uid, str) and uid:
+                        return uid
+                    return ""
+
+                def parse_dev(node, label=""):
+                    host = (
+                        f"{node.get('HostName', 'Unknown')} ({label})"
+                        if label
+                        else node.get("HostName", "Unknown")
+                    )
+                    ips = node.get("TailscaleIPs", [""])
+                    os_type = node.get("OS", "Unknown")
+                    tags = node.get("Tags") or []
+                    owner = resolve_owner(node)
+                    return {
+                        "hostname": host,
+                        "ips": ips,
+                        "owner": owner,
+                        "os": os_type,
+                        "status": "Active"
+                        if node.get("Active", False) or label == "Self"
+                        else "Offline",
+                        "tags": tags,
+                    }
+
+                devices = [parse_dev(self_node, "Self")]
+                for v in peers.values():
+                    devices.append(parse_dev(v))
+                # Write MD file if it doesn't exist
+                md_path = "Tailscale Devices.md"
+                if not os.path.exists(md_path):
+                    self._write_devices_md(devices, md_path)
+                return devices
+        except Exception:
+            pass
+
         # Fallback parsing of MD table
         md_path = "Tailscale Devices.md"
         if os.path.exists(md_path):
@@ -1273,6 +1332,26 @@ class TopologyEditor(ctk.CTkFrame):
             except Exception:
                 pass
         return devices
+
+    def _write_devices_md(self, devices, path):
+        """Write a list of device dicts to a Markdown table file."""
+        header = "| IP Address | Hostname | Owner | OS | Status | Tags |"
+        sep = "|---|---|---|---|---|---|"
+        rows = []
+        for dev in devices:
+            ip = (dev.get("ips") or [""])[0]
+            hostname = dev.get("hostname", "Unknown")
+            owner = dev.get("owner", "")
+            os_type = dev.get("os", "Unknown")
+            status = dev.get("status", "-")
+            tags = dev.get("tags", [])
+            tags_str = ", ".join(tags) if tags else "-"
+            rows.append(
+                f"| {ip} | {hostname} | {owner} | {os_type} | {status} | {tags_str} |"
+            )
+        content = f"# Tailscale Devices\n\n{header}\n{sep}\n" + "\n".join(rows) + "\n"
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
 
     # ---- LAYOUT & PERSISTENCE ----
     def apply_auto_layout(self, save=True):
@@ -1786,7 +1865,7 @@ class TopologyEditor(ctk.CTkFrame):
                 tags=(f"node_visual:{node_id}", f"node:{node_id}"),
             )
 
-            is_act = "active" in status or status == "-"
+            is_act = "active" in status or "idle" in status or status == "-"
             self.canvas.create_text(
                 x + 8 * self.zoom_factor,
                 content_y + 28 * self.zoom_factor,
@@ -1891,50 +1970,60 @@ class TopologyEditor(ctk.CTkFrame):
 
         df = self.visual_dim_levels.get(edge.id, 0.0)
 
-        # Start coordinates scaled
+        # Base coordinates
         sx = (src.x + src.width) * self.zoom_factor
         sy = (src.y + src.height / 2) * self.zoom_factor
         dx = dst.x * self.zoom_factor
         dy = (dst.y + dst.height / 2) * self.zoom_factor
 
-        # Adjust links
-        if src.type == "tag" and dst.type == "tag" and abs(src.x - dst.x) < 50:
-            # Special loop for Tag-to-Tag connections in the same column
-            # Loop out to the right side
-            sx = (src.x + src.width) * self.zoom_factor
-            sy = (src.y + src.height / 2) * self.zoom_factor
-            dx = (dst.x + dst.width) * self.zoom_factor
-            dy = (dst.y + dst.height / 2) * self.zoom_factor
-
-            loop_offset = 100 * self.zoom_factor
-            cx1 = sx + loop_offset
-            cy1 = sy
-            cx2 = dx + loop_offset
-            cy2 = dy
+        # Self-loop: draw a semi-circular arc on the right side of the node
+        if edge.src_id == edge.dst_id:
+            loop_r = 30 * self.zoom_factor
+            cx1 = sx + loop_r
+            cy1 = sy - loop_r
+            cx2 = sx + loop_r
+            cy2 = sy + loop_r
+            dx = sx
+            dy = sy
         else:
-            if edge.type == "membership":
-                dx, dy = (
-                    dst.x * self.zoom_factor,
-                    (dst.y + dst.height / 2) * self.zoom_factor,
-                )
-            elif edge.type == "ownership":
-                dx, dy = (
-                    dst.x * self.zoom_factor,
-                    (dst.y + dst.height / 2) * self.zoom_factor,
-                )
-            elif edge.type == "device":
+            # Adjust links
+            if src.type == "tag" and dst.type == "tag" and abs(src.x - dst.x) < 50:
+                # Special loop for Tag-to-Tag connections in the same column
+                # Loop out to the right side
                 sx = (src.x + src.width) * self.zoom_factor
                 sy = (src.y + src.height / 2) * self.zoom_factor
-                dx = dst.x * self.zoom_factor
+                dx = (dst.x + dst.width) * self.zoom_factor
                 dy = (dst.y + dst.height / 2) * self.zoom_factor
 
-            # Bezier calculation
-            dist = abs(dx - sx)
-            offset = max(60 * self.zoom_factor, dist * 0.45)
-            cx1 = sx + offset
-            cy1 = sy
-            cx2 = dx - offset
-            cy2 = dy
+                loop_offset = 100 * self.zoom_factor
+                cx1 = sx + loop_offset
+                cy1 = sy
+                cx2 = dx + loop_offset
+                cy2 = dy
+            else:
+                if edge.type == "membership":
+                    dx, dy = (
+                        dst.x * self.zoom_factor,
+                        (dst.y + dst.height / 2) * self.zoom_factor,
+                    )
+                elif edge.type == "ownership":
+                    dx, dy = (
+                        dst.x * self.zoom_factor,
+                        (dst.y + dst.height / 2) * self.zoom_factor,
+                    )
+                elif edge.type == "device":
+                    sx = (src.x + src.width) * self.zoom_factor
+                    sy = (src.y + src.height / 2) * self.zoom_factor
+                    dx = dst.x * self.zoom_factor
+                    dy = (dst.y + dst.height / 2) * self.zoom_factor
+
+                # Bezier calculation
+                dist = abs(dx - sx)
+                offset = max(60 * self.zoom_factor, dist * 0.45)
+                cx1 = sx + offset
+                cy1 = sy
+                cx2 = dx - offset
+                cy2 = dy
 
         is_sel = self.selected_edge_id == edge.id
 
@@ -2126,7 +2215,7 @@ class TopologyEditor(ctk.CTkFrame):
                 if dest_node_id:
                     break
 
-            if dest_node_id and dest_node_id != self.conn_start_node_id:
+            if dest_node_id:
                 self.handle_visual_connection(self.conn_start_node_id, dest_node_id)
 
             self.conn_start_node_id = None
@@ -2171,6 +2260,28 @@ class TopologyEditor(ctk.CTkFrame):
         # 3. Connection between Tag and Tag (ACL Access Rule)
         if src.type == "tag" and dst.type == "tag":
             self.create_acl_rule_dialog(src_id, dst_id)
+            return
+
+        # 4. Self-loop on autogroup (allow-by-default rule)
+        if src.type == "autogroup" and src_id == dst_id:
+            ports = "*"
+            label = (
+                src_id.replace("autogroup:", "autogroup").title()
+                if "autogroup:" in src_id
+                else src_id
+            )
+            dialog = ctk.CTkInputDialog(
+                text=f"Allowed ports for {src_id} self-connection (allow-by-default)?\nDefault is '*':",
+                title="Self-Connection Ports",
+            )
+            ports_input = dialog.get_input()
+            if ports_input is not None:
+                ports = ports_input.strip() or "*"
+                self.acl_data.setdefault("acls", []).append(
+                    {"action": "accept", "src": [src_id], "dst": [f"{src_id}:{ports}"]}
+                )
+                self.trigger_refresh()
+                self.select_node(src_id)
             return
 
     def create_acl_rule_dialog(self, src_id, dst_id):

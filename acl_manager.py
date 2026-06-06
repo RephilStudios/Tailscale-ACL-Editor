@@ -5,13 +5,13 @@ import threading
 import tkinter as tk
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
-import urllib.request
 import urllib.error
+import urllib.request
+
 import customtkinter as ctk
 import json5
 
 from topology_editor import TopologyEditor
-
 
 # Set custom styling and base themes
 ctk.set_appearance_mode("dark")
@@ -22,6 +22,7 @@ class CustomDialog(ctk.CTkToplevel):
     """
     Industry-standard modal dialog for rule creation and selection.
     """
+
     def __init__(
         self, parent, title, labels, options, show_ports=True, default_values=None
     ):
@@ -42,7 +43,7 @@ class CustomDialog(ctk.CTkToplevel):
             self,
             text=title.upper(),
             font=ctk.CTkFont(family="Segoe UI", size=15, weight="bold"),
-            text_color="#60a5fa"
+            text_color="#60a5fa",
         ).pack(pady=(20, 10))
 
         self.boxes = []
@@ -51,7 +52,7 @@ class CustomDialog(ctk.CTkToplevel):
                 self,
                 text=lbl,
                 font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-                text_color="#f8fafc"
+                text_color="#f8fafc",
             ).pack(pady=(10, 2))
 
             box = ctk.CTkComboBox(
@@ -63,7 +64,7 @@ class CustomDialog(ctk.CTkToplevel):
                 button_color="#3b82f6",
                 button_hover_color="#2563eb",
                 dropdown_fg_color="#1e293b",
-                dropdown_hover_color="#334155"
+                dropdown_hover_color="#334155",
             )
             if default_values and len(default_values) > i:
                 box.set(default_values[i])
@@ -79,14 +80,14 @@ class CustomDialog(ctk.CTkToplevel):
                 self,
                 text="Ports (e.g., '*', '22', '80,443'):",
                 font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-                text_color="#f8fafc"
+                text_color="#f8fafc",
             ).pack(pady=(10, 2))
             self.port_entry = ctk.CTkEntry(
                 self,
                 width=350,
                 fg_color="#0f172a",
                 border_color="#334155",
-                text_color="#f8fafc"
+                text_color="#f8fafc",
             )
             if default_values and len(default_values) > len(labels):
                 self.port_entry.insert(0, default_values[-1])
@@ -105,7 +106,7 @@ class CustomDialog(ctk.CTkToplevel):
             hover_color="#059669",
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
-            command=self.submit
+            command=self.submit,
         )
         btn_submit.pack(side="left", padx=10)
 
@@ -115,7 +116,7 @@ class CustomDialog(ctk.CTkToplevel):
             fg_color="#475569",
             hover_color="#334155",
             text_color="white",
-            command=self.cancel
+            command=self.cancel,
         )
         btn_cancel.pack(side="left", padx=10)
 
@@ -149,6 +150,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
     """
     Dialog to manage tag owners (tagOwners in ACL) for the tags of a device.
     """
+
     def __init__(self, parent, hostname, device_tags, acl_data, all_groups):
         super().__init__(parent)
         self.title(f"Manage Tag Owners: {hostname}")
@@ -176,7 +178,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             self,
             text=f"MANAGE TAG OWNERS FOR {hostname.upper()}",
             font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
-            text_color="#60a5fa"
+            text_color="#60a5fa",
         ).pack(pady=(15, 10))
 
         if not self.device_tags:
@@ -185,9 +187,9 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
                 text="This device has no assigned tags.\n\nOnly tagged devices have tag owners. Assign tags to the physical device\nfirst, or manage tag owners directly from the Tags tab.",
                 font=ctk.CTkFont(family="Segoe UI", size=12, slant="italic"),
                 text_color="#ef4444",
-                justify="center"
+                justify="center",
             ).pack(pady=40, padx=25)
-            
+
             ctk.CTkButton(
                 self,
                 text="Close",
@@ -195,9 +197,9 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
                 fg_color="#475569",
                 hover_color="#334155",
                 text_color="white",
-                command=self.destroy
+                command=self.destroy,
             ).pack(pady=10)
-            
+
             # Center dialog
             self.center_dialog(parent)
             self.wait_window()
@@ -212,9 +214,9 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
                 sel_frame,
                 text="Select Tag to Edit:",
                 font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-                text_color="#f8fafc"
+                text_color="#f8fafc",
             ).pack(side="left", padx=(0, 10))
-            
+
             self.tag_menu = ctk.CTkOptionMenu(
                 sel_frame,
                 values=self.device_tags,
@@ -223,7 +225,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
                 button_color="#334155",
                 button_hover_color="#475569",
                 dropdown_fg_color="#1e293b",
-                dropdown_hover_color="#334155"
+                dropdown_hover_color="#334155",
             )
             self.tag_menu.pack(side="left", fill="x", expand=True)
             self.tag_menu.set(self.selected_tag)
@@ -232,7 +234,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
                 self,
                 text=f"Editing Owners for: {self.selected_tag}",
                 font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-                text_color="#38bdf8"
+                text_color="#38bdf8",
             ).pack(pady=(5, 5))
 
         # Current Owners List
@@ -240,7 +242,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             self,
             text="Current Owners (Users/Groups):",
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            text_color="#f8fafc"
+            text_color="#f8fafc",
         ).pack(anchor="w", padx=25, pady=(5, 2))
 
         self.owners_scroll = ctk.CTkScrollableFrame(
@@ -249,7 +251,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             height=140,
             fg_color="#0f172a",
             border_width=1,
-            border_color="#334155"
+            border_color="#334155",
         )
         self.owners_scroll.pack(padx=25, pady=5)
 
@@ -258,7 +260,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             self,
             text="Add Owner Group:",
             font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
-            text_color="#f8fafc"
+            text_color="#f8fafc",
         ).pack(anchor="w", padx=25, pady=(10, 2))
 
         add_f = ctk.CTkFrame(self, fg_color="transparent")
@@ -271,7 +273,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             fg_color="#0f172a",
             border_color="#334155",
             dropdown_fg_color="#1e293b",
-            dropdown_hover_color="#334155"
+            dropdown_hover_color="#334155",
         )
         self.group_combo.pack(side="left", padx=(0, 10))
         if self.all_groups:
@@ -285,7 +287,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             hover_color="#2563eb",
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
-            command=self.add_group_owner
+            command=self.add_group_owner,
         )
         btn_add.pack(side="right")
 
@@ -294,7 +296,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             self,
             text="Or add custom owner (e.g. user@domain.com, group:shiner-tech, autogroup:admin):",
             font=ctk.CTkFont(family="Segoe UI", size=11, slant="italic"),
-            text_color="#94a3b8"
+            text_color="#94a3b8",
         ).pack(anchor="w", padx=25, pady=(5, 0))
 
         custom_f = ctk.CTkFrame(self, fg_color="transparent")
@@ -306,7 +308,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             width=320,
             fg_color="#0f172a",
             border_color="#334155",
-            text_color="#f8fafc"
+            text_color="#f8fafc",
         )
         self.custom_entry.pack(side="left", padx=(0, 10))
 
@@ -318,7 +320,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             hover_color="#059669",
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
-            command=self.add_custom_owner
+            command=self.add_custom_owner,
         )
         btn_add_custom.pack(side="right")
 
@@ -333,7 +335,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             hover_color="#059669",
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
-            command=self.save
+            command=self.save,
         )
         btn_save.pack(side="right", padx=5)
 
@@ -343,7 +345,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
             fg_color="#475569",
             hover_color="#334155",
             text_color="white",
-            command=self.destroy
+            command=self.destroy,
         )
         btn_cancel.pack(side="right", padx=5)
 
@@ -377,20 +379,24 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
                 self.owners_scroll,
                 text="No owners assigned to this tag (orphaned tag).",
                 font=ctk.CTkFont(slant="italic"),
-                text_color="#ef4444"
+                text_color="#ef4444",
             ).pack(pady=10)
             return
 
         for o in owners:
             row = ctk.CTkFrame(self.owners_scroll, fg_color="transparent")
             row.pack(fill="x", pady=2)
-            
-            disp_owner = o.replace("group:", "👥 ").replace("autogroup:", "⚙️ ").replace("user:", "👤 ")
+
+            disp_owner = (
+                o.replace("group:", "👥 ")
+                .replace("autogroup:", "⚙️ ")
+                .replace("user:", "👤 ")
+            )
             ctk.CTkLabel(
                 row,
                 text=disp_owner,
                 font=ctk.CTkFont(family="Segoe UI", size=12),
-                text_color="#e2e8f0"
+                text_color="#e2e8f0",
             ).pack(side="left", padx=5)
 
             btn_del = ctk.CTkButton(
@@ -402,7 +408,7 @@ class DeviceTagOwnersDialog(ctk.CTkToplevel):
                 text_color="#ef4444",
                 hover_color="#7f1d1d",
                 font=ctk.CTkFont(size=12, weight="bold"),
-                command=lambda owner_val=o: self.remove_owner(owner_val)
+                command=lambda owner_val=o: self.remove_owner(owner_val),
             )
             btn_del.pack(side="right", padx=5)
 
@@ -442,6 +448,7 @@ class ACLManagerV5(ctk.CTk):
     """
     Main Application Window containing the refurbished dashboard.
     """
+
     def __init__(self):
         super().__init__()
         self.title("Tailscale Access Control Console")
@@ -466,7 +473,9 @@ class ACLManagerV5(ctk.CTk):
 
     # ---- LAYOUT BUILDERS ----
     def setup_sidebar(self):
-        self.sidebar_frame = ctk.CTkFrame(self, width=240, corner_radius=0, fg_color=("#1e293b", "#0f172a"))
+        self.sidebar_frame = ctk.CTkFrame(
+            self, width=240, corner_radius=0, fg_color=("#1e293b", "#0f172a")
+        )
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
         self.sidebar_frame.pack_propagate(False)
 
@@ -478,7 +487,7 @@ class ACLManagerV5(ctk.CTk):
             self.brand_frame,
             text="🛡️ TAILSCALE ACL",
             font=ctk.CTkFont(family="Segoe UI", size=18, weight="bold"),
-            text_color=("#3b82f6", "#38bdf8")
+            text_color=("#3b82f6", "#38bdf8"),
         )
         self.lbl_logo.pack(anchor="w")
 
@@ -486,7 +495,7 @@ class ACLManagerV5(ctk.CTk):
             self.brand_frame,
             text="Console & Editor v6.0",
             font=ctk.CTkFont(family="Segoe UI", size=11, slant="italic"),
-            text_color=("#64748b", "#94a3b8")
+            text_color=("#64748b", "#94a3b8"),
         )
         self.lbl_subtitle.pack(anchor="w", pady=(2, 0))
 
@@ -516,7 +525,7 @@ class ACLManagerV5(ctk.CTk):
                 fg_color="transparent",
                 text_color=("#475569", "#cbd5e1"),
                 hover_color=("#cbd5e1", "#1e293b"),
-                command=lambda k=page_key: self.show_page(k)
+                command=lambda k=page_key: self.show_page(k),
             )
             btn.pack(fill="x", pady=3)
             self.nav_buttons[page_key] = btn
@@ -526,7 +535,9 @@ class ACLManagerV5(ctk.CTk):
         self.bottom_frame.pack(fill="x", side="bottom", padx=15, pady=20)
 
         # Subtle divider line
-        ctk.CTkFrame(self.bottom_frame, height=2, fg_color=("#e2e8f0", "#1e293b")).pack(fill="x", pady=(0, 15))
+        ctk.CTkFrame(self.bottom_frame, height=2, fg_color=("#e2e8f0", "#1e293b")).pack(
+            fill="x", pady=(0, 15)
+        )
 
         self.btn_load = ctk.CTkButton(
             self.bottom_frame,
@@ -535,7 +546,7 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#2563eb", "#1d4ed8"),
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
-            command=self.load_json
+            command=self.load_json,
         )
         self.btn_load.pack(fill="x", pady=4)
 
@@ -546,7 +557,7 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#059669", "#047857"),
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
-            command=self.save_json
+            command=self.save_json,
         )
         self.btn_save.pack(fill="x", pady=4)
 
@@ -557,12 +568,14 @@ class ACLManagerV5(ctk.CTk):
             text_color=("#64748b", "#94a3b8"),
             justify="left",
             anchor="w",
-            wraplength=200
+            wraplength=200,
         )
         self.lbl_status.pack(fill="x", pady=(10, 0))
 
     def setup_main_content(self):
-        self.content_frame = ctk.CTkFrame(self, fg_color=("#f8fafc", "#0b0f19"), corner_radius=0)
+        self.content_frame = ctk.CTkFrame(
+            self, fg_color=("#f8fafc", "#0b0f19"), corner_radius=0
+        )
         self.content_frame.grid(row=0, column=1, sticky="nsew")
         self.content_frame.grid_rowconfigure(0, weight=1)
         self.content_frame.grid_columnconfigure(0, weight=1)
@@ -615,13 +628,13 @@ class ACLManagerV5(ctk.CTk):
                 btn.configure(
                     fg_color=("#3b82f6", "#2563eb"),
                     text_color="white",
-                    hover_color=("#2563eb", "#1d4ed8")
+                    hover_color=("#2563eb", "#1d4ed8"),
                 )
             else:
                 btn.configure(
                     fg_color="transparent",
                     text_color=("#475569", "#cbd5e1"),
-                    hover_color=("#e2e8f0", "#1e293b")
+                    hover_color=("#e2e8f0", "#1e293b"),
                 )
 
     # ---- PAGE SETUP IMPLEMENTATIONS ----
@@ -643,7 +656,7 @@ class ACLManagerV5(ctk.CTk):
             title_f,
             text="No config file loaded.",
             font=ctk.CTkFont(family="Segoe UI", size=13),
-            text_color=("#64748b", "#94a3b8")
+            text_color=("#64748b", "#94a3b8"),
         )
         self.lbl_overview_subtitle.pack(anchor="w", pady=(2, 0))
 
@@ -652,17 +665,25 @@ class ACLManagerV5(ctk.CTk):
         self.stats_frame.grid(row=1, column=0, sticky="ew", pady=10)
         self.stats_frame.grid_columnconfigure((0, 1, 2, 3), weight=1, uniform="stats")
 
-        self.card_rules = self.create_stat_card(self.stats_frame, 0, "🛡️", "Access Rules", "0 Rules", "#10b981")
-        self.card_tags = self.create_stat_card(self.stats_frame, 1, "🏷️", "Network Tags", "0 Tags", "#f97316")
-        self.card_groups = self.create_stat_card(self.stats_frame, 2, "👥", "Groups Manager", "0 Groups", "#8b5cf6")
-        self.card_devices = self.create_stat_card(self.stats_frame, 3, "💻", "Live Devices", "0 Devices", "#64748b")
+        self.card_rules = self.create_stat_card(
+            self.stats_frame, 0, "🛡️", "Access Rules", "0 Rules", "#10b981"
+        )
+        self.card_tags = self.create_stat_card(
+            self.stats_frame, 1, "🏷️", "Network Tags", "0 Tags", "#f97316"
+        )
+        self.card_groups = self.create_stat_card(
+            self.stats_frame, 2, "👥", "Groups Manager", "0 Groups", "#8b5cf6"
+        )
+        self.card_devices = self.create_stat_card(
+            self.stats_frame, 3, "💻", "Live Devices", "0 Devices", "#64748b"
+        )
 
         # Metadata Card Info Box
         self.info_box = ctk.CTkFrame(
             self.page_overview,
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
-            border_color=("#e2e8f0", "#334155")
+            border_color=("#e2e8f0", "#334155"),
         )
         self.info_box.grid(row=2, column=0, sticky="nsew", pady=(20, 10))
 
@@ -683,7 +704,7 @@ class ACLManagerV5(ctk.CTk):
             ("group_count", "Total Groups:"),
             ("user_count", "Total Group Users:"),
             ("device_count", "Total Devices:"),
-            ("status", "System Status:")
+            ("status", "System Status:"),
         ]
 
         for idx, (key, label_text) in enumerate(meta_keys):
@@ -696,7 +717,7 @@ class ACLManagerV5(ctk.CTk):
                 font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
                 width=160,
                 anchor="w",
-                text_color=("#475569", "#cbd5e1")
+                text_color=("#475569", "#cbd5e1"),
             )
             lbl_k.pack(side="left")
 
@@ -705,7 +726,7 @@ class ACLManagerV5(ctk.CTk):
                 text="-",
                 font=ctk.CTkFont(family="Segoe UI", size=13),
                 anchor="w",
-                text_color=("#1e293b", "#f8fafc")
+                text_color=("#1e293b", "#f8fafc"),
             )
             lbl_v.pack(side="left", fill="x", expand=True)
             self.meta_labels[key] = lbl_v
@@ -716,7 +737,7 @@ class ACLManagerV5(ctk.CTk):
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
             border_color=("#e2e8f0", "#334155"),
-            corner_radius=10
+            corner_radius=10,
         )
         card.grid(row=0, column=col, padx=10, pady=5, sticky="nsew")
 
@@ -724,19 +745,23 @@ class ACLManagerV5(ctk.CTk):
         header_f = ctk.CTkFrame(card, fg_color="transparent")
         header_f.pack(fill="x", padx=15, pady=(15, 5))
 
-        icon_lbl = ctk.CTkLabel(header_f, text=icon, font=ctk.CTkFont(size=22), text_color=color)
+        icon_lbl = ctk.CTkLabel(
+            header_f, text=icon, font=ctk.CTkFont(size=22), text_color=color
+        )
         icon_lbl.pack(side="left")
 
         title_lbl = ctk.CTkLabel(
             header_f,
             text=title,
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            text_color=("#64748b", "#94a3b8")
+            text_color=("#64748b", "#94a3b8"),
         )
         title_lbl.pack(side="left", padx=8)
 
         # Big Number Value
-        num_lbl = ctk.CTkLabel(card, text=val, font=ctk.CTkFont(family="Segoe UI", size=24, weight="bold"))
+        num_lbl = ctk.CTkLabel(
+            card, text=val, font=ctk.CTkFont(family="Segoe UI", size=24, weight="bold")
+        )
         num_lbl.pack(anchor="w", padx=15, pady=(5, 15))
 
         # Colored accent stripe at top
@@ -765,7 +790,7 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#059669", "#047857"),
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            command=self.create_custom_rule
+            command=self.create_custom_rule,
         )
         btn_add.pack(side="right")
 
@@ -774,14 +799,16 @@ class ACLManagerV5(ctk.CTk):
             self.page_rules,
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
-            border_color=("#e2e8f0", "#334155")
+            border_color=("#e2e8f0", "#334155"),
         )
         self.rules_table_container.grid(row=1, column=0, sticky="nsew")
         self.rules_table_container.grid_rowconfigure(1, weight=1)
         self.rules_table_container.grid_columnconfigure(0, weight=1)
 
         # Header Row
-        headers_f = ctk.CTkFrame(self.rules_table_container, fg_color=("#f1f5f9", "#0f172a"), height=40)
+        headers_f = ctk.CTkFrame(
+            self.rules_table_container, fg_color=("#f1f5f9", "#0f172a"), height=40
+        )
         headers_f.grid(row=0, column=0, sticky="ew")
         headers_f.pack_propagate(False)
 
@@ -791,7 +818,7 @@ class ACLManagerV5(ctk.CTk):
             ("Direction", 80),
             ("Destination Node", 230),
             ("Ports", 140),
-            ("Actions", 120)
+            ("Actions", 120),
         ]
 
         for col_name, width in cols:
@@ -803,7 +830,7 @@ class ACLManagerV5(ctk.CTk):
                 f_col,
                 text=col_name,
                 font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-                text_color=("#475569", "#94a3b8")
+                text_color=("#475569", "#94a3b8"),
             )
             if col_name in ["ID", "Direction", "Actions"]:
                 lbl.pack(expand=True)
@@ -811,7 +838,9 @@ class ACLManagerV5(ctk.CTk):
                 lbl.pack(side="left", fill="y", padx=5)
 
         # Table Row Frame Scrollable Area
-        self.rules_scrollable = ctk.CTkScrollableFrame(self.rules_table_container, fg_color="transparent")
+        self.rules_scrollable = ctk.CTkScrollableFrame(
+            self.rules_table_container, fg_color="transparent"
+        )
         self.rules_scrollable.grid(row=1, column=0, sticky="nsew")
 
     def setup_tags_tab(self):
@@ -824,14 +853,14 @@ class ACLManagerV5(ctk.CTk):
             self.page_tags,
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
-            border_color=("#e2e8f0", "#334155")
+            border_color=("#e2e8f0", "#334155"),
         )
         left_f.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
 
         ctk.CTkLabel(
             left_f,
             text="Network Tags",
-            font=ctk.CTkFont(family="Segoe UI", size=16, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI", size=16, weight="bold"),
         ).pack(pady=(15, 10))
 
         # Search field
@@ -843,7 +872,7 @@ class ACLManagerV5(ctk.CTk):
             placeholder_text="🔍 Filter tags...",
             textvariable=self.tag_search_var,
             fg_color=("#f1f5f9", "#0f172a"),
-            border_color=("#cbd5e1", "#334155")
+            border_color=("#cbd5e1", "#334155"),
         )
         search_entry.pack(fill="x", padx=12, pady=(0, 10))
 
@@ -857,7 +886,7 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#2563eb", "#1d4ed8"),
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
-            command=self.create_tag
+            command=self.create_tag,
         ).pack(pady=12, padx=12, fill="x")
 
         # Right Column - Details/Inspector
@@ -872,7 +901,7 @@ class ACLManagerV5(ctk.CTk):
             self.right_f,
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
-            border_color=("#e2e8f0", "#334155")
+            border_color=("#e2e8f0", "#334155"),
         )
         self.tag_empty_frame.pack(fill="both", expand=True)
 
@@ -881,7 +910,7 @@ class ACLManagerV5(ctk.CTk):
             text="🏷️\n\nSelect a tag from the left pane\nto view or update properties.",
             font=ctk.CTkFont(family="Segoe UI", size=14, slant="italic"),
             text_color=("#64748b", "#94a3b8"),
-            justify="center"
+            justify="center",
         ).pack(expand=True)
 
         # Inspector Container
@@ -892,7 +921,7 @@ class ACLManagerV5(ctk.CTk):
             self.tag_inspector_frame,
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
-            border_color=("#e2e8f0", "#334155")
+            border_color=("#e2e8f0", "#334155"),
         )
         id_card.pack(fill="x", pady=(0, 12))
 
@@ -902,7 +931,7 @@ class ACLManagerV5(ctk.CTk):
         self.lbl_tag_title = ctk.CTkLabel(
             header_f,
             text="tag:unselected",
-            font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI", size=20, weight="bold"),
         )
         self.lbl_tag_title.pack(side="left")
 
@@ -914,7 +943,7 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#fecaca", "#991b1b"),
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
             width=110,
-            command=self.delete_tag
+            command=self.delete_tag,
         )
         self.btn_delete_tag.pack(side="right", padx=5)
 
@@ -926,7 +955,7 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#cbd5e1", "#475569"),
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
             width=90,
-            command=self.rename_tag
+            command=self.rename_tag,
         )
         self.btn_rename_tag.pack(side="right", padx=5)
 
@@ -935,14 +964,14 @@ class ACLManagerV5(ctk.CTk):
             self.tag_inspector_frame,
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
-            border_color=("#e2e8f0", "#334155")
+            border_color=("#e2e8f0", "#334155"),
         )
         self.f_owners.pack(fill="x", pady=10)
 
         ctk.CTkLabel(
             self.f_owners,
             text="👥 Tag Owners (Groups & Autogroups)",
-            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
         ).pack(anchor="w", padx=15, pady=(15, 8))
 
         self.owners_chips_frame = ctk.CTkFrame(self.f_owners, fg_color="transparent")
@@ -956,7 +985,7 @@ class ACLManagerV5(ctk.CTk):
             add_owner_f,
             width=220,
             fg_color=("#f1f5f9", "#0f172a"),
-            border_color=("#cbd5e1", "#334155")
+            border_color=("#cbd5e1", "#334155"),
         )
         self.combo_owners_list.pack(side="left", padx=(0, 10))
 
@@ -967,7 +996,7 @@ class ACLManagerV5(ctk.CTk):
             fg_color=("#3b82f6", "#2563eb"),
             hover_color=("#2563eb", "#1d4ed8"),
             text_color="white",
-            command=self.add_owner_direct
+            command=self.add_owner_direct,
         ).pack(side="left")
 
         # 3. Outbound Access Card
@@ -975,7 +1004,7 @@ class ACLManagerV5(ctk.CTk):
             self.tag_inspector_frame,
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
-            border_color=("#e2e8f0", "#334155")
+            border_color=("#e2e8f0", "#334155"),
         )
         self.f_outbound.pack(fill="both", expand=True, pady=10)
 
@@ -985,7 +1014,7 @@ class ACLManagerV5(ctk.CTk):
         ctk.CTkLabel(
             outbound_header,
             text="🏹 Outbound Access Rules",
-            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold")
+            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
         ).pack(side="left")
 
         ctk.CTkButton(
@@ -995,11 +1024,13 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#059669", "#047857"),
             text_color="white",
             command=self.add_outbound_rule,
-            width=150
+            width=150,
         ).pack(side="right")
 
         # Scrollable Rule rows
-        self.outbound_rules_scroll = ctk.CTkScrollableFrame(self.f_outbound, fg_color="transparent")
+        self.outbound_rules_scroll = ctk.CTkScrollableFrame(
+            self.f_outbound, fg_color="transparent"
+        )
         self.outbound_rules_scroll.pack(fill="both", expand=True, padx=10, pady=5)
 
     def setup_groups_tab(self):
@@ -1022,11 +1053,13 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#2563eb", "#1d4ed8"),
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            command=self.add_group
+            command=self.add_group,
         )
         btn_add.pack(side="right")
 
-        self.groups_grid_scrollable = ctk.CTkScrollableFrame(self.page_groups, fg_color="transparent")
+        self.groups_grid_scrollable = ctk.CTkScrollableFrame(
+            self.page_groups, fg_color="transparent"
+        )
         self.groups_grid_scrollable.grid(row=1, column=0, sticky="nsew")
 
     def setup_devices_tab(self):
@@ -1049,13 +1082,15 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#2563eb", "#1d4ed8"),
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-            command=self.fetch_devices_interactive
+            command=self.fetch_devices_interactive,
         )
         btn_fetch.pack(side="right", padx=(10, 0))
 
         # Search Bar filter
         self.device_search_var = tk.StringVar()
-        self.device_search_var.trace_add("write", lambda *args: self.refresh_devices_table())
+        self.device_search_var.trace_add(
+            "write", lambda *args: self.refresh_devices_table()
+        )
 
         search_entry = ctk.CTkEntry(
             header_f,
@@ -1063,7 +1098,7 @@ class ACLManagerV5(ctk.CTk):
             textvariable=self.device_search_var,
             width=250,
             fg_color=("#f1f5f9", "#0f172a"),
-            border_color=("#cbd5e1", "#334155")
+            border_color=("#cbd5e1", "#334155"),
         )
         search_entry.pack(side="right")
 
@@ -1072,14 +1107,16 @@ class ACLManagerV5(ctk.CTk):
             self.page_devices,
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
-            border_color=("#e2e8f0", "#334155")
+            border_color=("#e2e8f0", "#334155"),
         )
         self.devices_table_container.grid(row=1, column=0, sticky="nsew")
         self.devices_table_container.grid_rowconfigure(1, weight=1)
         self.devices_table_container.grid_columnconfigure(0, weight=1)
 
         # Headers Row
-        headers_f = ctk.CTkFrame(self.devices_table_container, fg_color=("#f1f5f9", "#0f172a"), height=40)
+        headers_f = ctk.CTkFrame(
+            self.devices_table_container, fg_color=("#f1f5f9", "#0f172a"), height=40
+        )
         headers_f.grid(row=0, column=0, sticky="ew")
         headers_f.pack_propagate(False)
 
@@ -1088,7 +1125,7 @@ class ACLManagerV5(ctk.CTk):
             ("Hostname", 200),
             ("IP Address", 150),
             ("OS", 100),
-            ("Assigned Badges / Owners", 300)
+            ("Assigned Badges / Owners", 300),
         ]
 
         for col_name, width in cols:
@@ -1100,7 +1137,7 @@ class ACLManagerV5(ctk.CTk):
                 f_col,
                 text=col_name,
                 font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-                text_color=("#475569", "#94a3b8")
+                text_color=("#475569", "#94a3b8"),
             )
             if col_name in ["Status", "OS"]:
                 lbl.pack(expand=True)
@@ -1108,7 +1145,9 @@ class ACLManagerV5(ctk.CTk):
                 lbl.pack(side="left", fill="y", padx=5)
 
         # Scrollable rows
-        self.devices_scrollable = ctk.CTkScrollableFrame(self.devices_table_container, fg_color="transparent")
+        self.devices_scrollable = ctk.CTkScrollableFrame(
+            self.devices_table_container, fg_color="transparent"
+        )
         self.devices_scrollable.grid(row=1, column=0, sticky="nsew")
 
     def setup_raw_tab(self):
@@ -1131,7 +1170,7 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#059669", "#047857"),
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
-            command=self.apply_raw
+            command=self.apply_raw,
         )
         btn_apply.pack(side="right", padx=(10, 0))
 
@@ -1142,7 +1181,7 @@ class ACLManagerV5(ctk.CTk):
             text_color=("#1e293b", "#f8fafc"),
             hover_color=("#cbd5e1", "#475569"),
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
-            command=self.copy_raw_to_clipboard
+            command=self.copy_raw_to_clipboard,
         )
         btn_copy.pack(side="right", padx=(10, 0))
 
@@ -1153,7 +1192,7 @@ class ACLManagerV5(ctk.CTk):
             text_color=("#1e293b", "#f8fafc"),
             hover_color=("#cbd5e1", "#475569"),
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
-            command=self.format_raw_json
+            command=self.format_raw_json,
         )
         btn_format.pack(side="right")
 
@@ -1162,13 +1201,15 @@ class ACLManagerV5(ctk.CTk):
             self.page_raw,
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
-            border_color=("#e2e8f0", "#334155")
+            border_color=("#e2e8f0", "#334155"),
         )
         container.grid(row=1, column=0, sticky="nsew")
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
-        self.txt_raw = ctk.CTkTextbox(container, font=("Consolas", 13), fg_color="transparent")
+        self.txt_raw = ctk.CTkTextbox(
+            container, font=("Consolas", 13), fg_color="transparent"
+        )
         self.txt_raw.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
     def setup_topology_tab(self):
@@ -1176,9 +1217,7 @@ class ACLManagerV5(ctk.CTk):
         self.page_topology.grid_columnconfigure(0, weight=1)
 
         self.topology_editor = TopologyEditor(
-            self.page_topology,
-            self.acl_data,
-            refresh_callback=self.on_topology_edited
+            self.page_topology, self.acl_data, refresh_callback=self.on_topology_edited
         )
         self.topology_editor.grid(row=0, column=0, sticky="nsew")
         self.topology_editor.load_data(self.acl_data, self.current_filepath)
@@ -1259,7 +1298,9 @@ class ACLManagerV5(ctk.CTk):
         num_tags = len(self.get_all_tags())
         num_groups = len(self.acl_data.get("groups", {}))
 
-        total_members = sum(len(users) for users in self.acl_data.get("groups", {}).values())
+        total_members = sum(
+            len(users) for users in self.acl_data.get("groups", {}).values()
+        )
 
         devices = []
         if hasattr(self, "cli_devices") and self.cli_devices:
@@ -1279,15 +1320,23 @@ class ACLManagerV5(ctk.CTk):
             self.lbl_overview_subtitle.configure(text=f"Configuration profile: {fn}")
             self.meta_labels["file_path"].configure(text=self.current_filepath)
         else:
-            self.lbl_overview_subtitle.configure(text="Default Scratch / Unsaved Sandbox Workspace")
-            self.meta_labels["file_path"].configure(text="Default Scratch space / Unsaved profile")
+            self.lbl_overview_subtitle.configure(
+                text="Default Scratch / Unsaved Sandbox Workspace"
+            )
+            self.meta_labels["file_path"].configure(
+                text="Default Scratch space / Unsaved profile"
+            )
 
         self.meta_labels["rule_count"].configure(text=str(num_acls))
         self.meta_labels["tag_count"].configure(text=str(num_tags))
         self.meta_labels["group_count"].configure(text=str(num_groups))
         self.meta_labels["user_count"].configure(text=str(total_members))
         self.meta_labels["device_count"].configure(text=str(num_devices))
-        self.meta_labels["status"].configure(text="Synchronized & Operational" if self.current_filepath else "Scratch Editor Mode")
+        self.meta_labels["status"].configure(
+            text="Synchronized & Operational"
+            if self.current_filepath
+            else "Scratch Editor Mode"
+        )
 
     def refresh_rules(self):
         # Clean current rows
@@ -1301,7 +1350,7 @@ class ACLManagerV5(ctk.CTk):
                 text="No Access Control Rules defined yet.\nClick '+ Add Access Rule' to create one.",
                 font=ctk.CTkFont(family="Segoe UI", size=13, slant="italic"),
                 text_color=("#64748b", "#94a3b8"),
-                pady=40
+                pady=40,
             )
             empty_lbl.pack(fill="x")
             return
@@ -1309,8 +1358,10 @@ class ACLManagerV5(ctk.CTk):
         for idx, r in enumerate(acls):
             row_frame = ctk.CTkFrame(
                 self.rules_scrollable,
-                fg_color=("#ffffff", "#1e293b") if idx % 2 == 0 else ("#f8fafc", "#162031"),
-                height=45
+                fg_color=("#ffffff", "#1e293b")
+                if idx % 2 == 0
+                else ("#f8fafc", "#162031"),
+                height=45,
             )
             row_frame.pack(fill="x", pady=2)
             row_frame.pack_propagate(False)
@@ -1319,7 +1370,11 @@ class ACLManagerV5(ctk.CTk):
             f_id = ctk.CTkFrame(row_frame, width=60, fg_color="transparent")
             f_id.pack(side="left", fill="both", padx=5)
             f_id.pack_propagate(False)
-            ctk.CTkLabel(f_id, text=f"#{idx}", font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold")).pack(expand=True)
+            ctk.CTkLabel(
+                f_id,
+                text=f"#{idx}",
+                font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            ).pack(expand=True)
 
             # 2. Source Column
             f_src = ctk.CTkFrame(row_frame, width=230, fg_color="transparent")
@@ -1351,14 +1406,19 @@ class ACLManagerV5(ctk.CTk):
                 text=f"{icon_prefix}{src_str}",
                 font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
                 text_color=text_color,
-                padx=8
+                padx=8,
             ).pack()
 
             # 3. Arrow Column
             f_dir = ctk.CTkFrame(row_frame, width=80, fg_color="transparent")
             f_dir.pack(side="left", fill="both", padx=5)
             f_dir.pack_propagate(False)
-            ctk.CTkLabel(f_dir, text="➔", font=ctk.CTkFont(size=14), text_color=("#10b981", "#34d399")).pack(expand=True)
+            ctk.CTkLabel(
+                f_dir,
+                text="➔",
+                font=ctk.CTkFont(size=14),
+                text_color=("#10b981", "#34d399"),
+            ).pack(expand=True)
 
             # 4. Destination Column
             f_dst = ctk.CTkFrame(row_frame, width=230, fg_color="transparent")
@@ -1366,7 +1426,9 @@ class ACLManagerV5(ctk.CTk):
             f_dst.pack_propagate(False)
 
             dst_raw = ", ".join(r.get("dst", []))
-            dst_target, dst_ports = dst_raw.rsplit(":", 1) if ":" in dst_raw else (dst_raw, "*")
+            dst_target, dst_ports = (
+                dst_raw.rsplit(":", 1) if ":" in dst_raw else (dst_raw, "*")
+            )
 
             dst_chip_color = ("#ffedd5", "#5c3a21")
             dst_text_color = ("#9a3412", "#ffb088")
@@ -1383,7 +1445,7 @@ class ACLManagerV5(ctk.CTk):
                 text=f"{dst_icon}{dst_target}",
                 font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
                 text_color=dst_text_color,
-                padx=8
+                padx=8,
             ).pack()
 
             # 5. Ports Column
@@ -1396,7 +1458,7 @@ class ACLManagerV5(ctk.CTk):
                 fg_color=("#f1f5f9", "#0f172a"),
                 corner_radius=4,
                 border_width=1,
-                border_color=("#cbd5e1", "#334155")
+                border_color=("#cbd5e1", "#334155"),
             )
             port_box.pack(side="left", padx=5, pady=8)
             ctk.CTkLabel(
@@ -1404,7 +1466,7 @@ class ACLManagerV5(ctk.CTk):
                 text=dst_ports,
                 font=ctk.CTkFont(family="Consolas", size=11, weight="bold"),
                 text_color=("#475569", "#94a3b8"),
-                padx=6
+                padx=6,
             ).pack()
 
             # 6. Actions Column
@@ -1423,7 +1485,7 @@ class ACLManagerV5(ctk.CTk):
                 fg_color=("#e2e8f0", "#334155"),
                 text_color=("#1e293b", "#f8fafc"),
                 hover_color=("#cbd5e1", "#475569"),
-                command=lambda idx=idx: self.edit_rule_by_index(idx)
+                command=lambda idx=idx: self.edit_rule_by_index(idx),
             )
             btn_edit.pack(side="left", padx=4)
 
@@ -1435,7 +1497,7 @@ class ACLManagerV5(ctk.CTk):
                 fg_color=("#fee2e2", "#7f1d1d"),
                 text_color=("#ef4444", "#fecaca"),
                 hover_color=("#fecaca", "#991b1b"),
-                command=lambda idx=idx: self.delete_rule_by_index(idx)
+                command=lambda idx=idx: self.delete_rule_by_index(idx),
             )
             btn_del.pack(side="left", padx=4)
 
@@ -1449,7 +1511,7 @@ class ACLManagerV5(ctk.CTk):
         filtered_tags = [t for t in tags if search_term in t.lower()]
 
         for t in filtered_tags:
-            is_active = (self.current_tag == t)
+            is_active = self.current_tag == t
 
             btn = ctk.CTkButton(
                 self.tags_scrollable,
@@ -1458,7 +1520,9 @@ class ACLManagerV5(ctk.CTk):
                 fg_color=("#3b82f6", "#2563eb") if is_active else "transparent",
                 text_color="white" if is_active else ("#1e293b", "#cbd5e1"),
                 hover_color=("#e2e8f0", "#1e293b") if not is_active else None,
-                font=ctk.CTkFont(family="Segoe UI", weight="bold" if is_active else "normal"),
+                font=ctk.CTkFont(
+                    family="Segoe UI", weight="bold" if is_active else "normal"
+                ),
                 command=lambda name=t: self.select_tag(name),
             )
             btn.pack(fill="x", pady=2)
@@ -1474,12 +1538,14 @@ class ACLManagerV5(ctk.CTk):
                 text="No user groups defined yet.\nClick '+ Create New Group' at the top to configure.",
                 font=ctk.CTkFont(family="Segoe UI", size=13, slant="italic"),
                 text_color=("#64748b", "#94a3b8"),
-                pady=40
+                pady=40,
             )
             empty_lbl.pack(fill="x")
             return
 
-        grid_container = ctk.CTkFrame(self.groups_grid_scrollable, fg_color="transparent")
+        grid_container = ctk.CTkFrame(
+            self.groups_grid_scrollable, fg_color="transparent"
+        )
         grid_container.pack(fill="both", expand=True)
         grid_container.grid_columnconfigure((0, 1), weight=1, uniform="group_cards")
 
@@ -1493,7 +1559,7 @@ class ACLManagerV5(ctk.CTk):
                 fg_color=("#ffffff", "#1e293b"),
                 border_width=1,
                 border_color=("#e2e8f0", "#334155"),
-                corner_radius=8
+                corner_radius=8,
             )
             card.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
 
@@ -1505,7 +1571,12 @@ class ACLManagerV5(ctk.CTk):
             accent = ctk.CTkFrame(g_header, width=4, fg_color="#8b5cf6")
             accent.pack(side="left", fill="y")
 
-            lbl_title = ctk.CTkLabel(g_header, text=g, font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"), padx=10)
+            lbl_title = ctk.CTkLabel(
+                g_header,
+                text=g,
+                font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+                padx=10,
+            )
             lbl_title.pack(side="left")
 
             btn_del = ctk.CTkButton(
@@ -1517,7 +1588,7 @@ class ACLManagerV5(ctk.CTk):
                 text_color="#ef4444",
                 hover_color=("#fee2e2", "#7f1d1d"),
                 font=ctk.CTkFont(size=12),
-                command=lambda g_name=g: self.delete_group_direct(g_name)
+                command=lambda g_name=g: self.delete_group_direct(g_name),
             )
             btn_del.pack(side="right", padx=6)
 
@@ -1530,7 +1601,7 @@ class ACLManagerV5(ctk.CTk):
                 text_color=("#475569", "#cbd5e1"),
                 hover_color=("#cbd5e1", "#334155"),
                 font=ctk.CTkFont(size=12),
-                command=lambda g_name=g: self.rename_group_direct(g_name)
+                command=lambda g_name=g: self.rename_group_direct(g_name),
             )
             btn_rename.pack(side="right", padx=2)
 
@@ -1545,7 +1616,7 @@ class ACLManagerV5(ctk.CTk):
                     users_frame,
                     text="No users in group",
                     font=ctk.CTkFont(slant="italic"),
-                    text_color=("#94a3b8", "#64748b")
+                    text_color=("#94a3b8", "#64748b"),
                 )
                 empty_user_lbl.pack(pady=10)
             else:
@@ -1554,7 +1625,12 @@ class ACLManagerV5(ctk.CTk):
                     u_row.pack(fill="x", pady=2)
                     u_row.pack_propagate(False)
 
-                    ctk.CTkLabel(u_row, text=f"👤  {u}", font=ctk.CTkFont(family="Segoe UI", size=12), anchor="w").pack(side="left", fill="both", expand=True)
+                    ctk.CTkLabel(
+                        u_row,
+                        text=f"👤  {u}",
+                        font=ctk.CTkFont(family="Segoe UI", size=12),
+                        anchor="w",
+                    ).pack(side="left", fill="both", expand=True)
 
                     btn_rem_user = ctk.CTkButton(
                         u_row,
@@ -1565,7 +1641,9 @@ class ACLManagerV5(ctk.CTk):
                         text_color="#ef4444",
                         hover_color=("#fee2e2", "#7f1d1d"),
                         font=ctk.CTkFont(size=11, weight="bold"),
-                        command=lambda g_name=g, u_name=u: self.remove_user_from_group_direct(g_name, u_name)
+                        command=lambda g_name=g, u_name=u: (
+                            self.remove_user_from_group_direct(g_name, u_name)
+                        ),
                     )
                     btn_rem_user.pack(side="right")
 
@@ -1578,7 +1656,7 @@ class ACLManagerV5(ctk.CTk):
                 placeholder_text="Enter user email...",
                 height=28,
                 fg_color=("#f1f5f9", "#0f172a"),
-                border_color=("#cbd5e1", "#334155")
+                border_color=("#cbd5e1", "#334155"),
             )
             entry_user.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
@@ -1590,7 +1668,9 @@ class ACLManagerV5(ctk.CTk):
                 fg_color=("#8b5cf6", "#7c3aed"),
                 hover_color=("#7c3aed", "#6d28d9"),
                 text_color="white",
-                command=lambda g_name=g, ent=entry_user: self.add_user_to_group_direct(g_name, ent)
+                command=lambda g_name=g, ent=entry_user: self.add_user_to_group_direct(
+                    g_name, ent
+                ),
             )
             btn_add_user.pack(side="right")
 
@@ -1610,7 +1690,7 @@ class ACLManagerV5(ctk.CTk):
                 text="No device configurations cached.\nVerify 'Tailscale Devices.md' exists, or query using the live command above.",
                 font=ctk.CTkFont(family="Segoe UI", size=13, slant="italic"),
                 text_color=("#64748b", "#94a3b8"),
-                pady=40
+                pady=40,
             )
             empty_lbl.pack(fill="x")
             return
@@ -1627,11 +1707,11 @@ class ACLManagerV5(ctk.CTk):
             tags = dev.get("tags", [])
 
             match = (
-                search_term in hostname.lower() or
-                search_term in ip.lower() or
-                search_term in os_name.lower() or
-                search_term in owner.lower() or
-                any(search_term in t.lower() for t in tags)
+                search_term in hostname.lower()
+                or search_term in ip.lower()
+                or search_term in os_name.lower()
+                or search_term in owner.lower()
+                or any(search_term in t.lower() for t in tags)
             )
 
             if match or not search_term:
@@ -1643,7 +1723,7 @@ class ACLManagerV5(ctk.CTk):
                 text="No devices match your search parameters.",
                 font=ctk.CTkFont(family="Segoe UI", size=13, slant="italic"),
                 text_color=("#64748b", "#94a3b8"),
-                pady=20
+                pady=20,
             )
             empty_lbl.pack(fill="x")
             return
@@ -1651,8 +1731,10 @@ class ACLManagerV5(ctk.CTk):
         for idx, dev in enumerate(filtered_devices):
             row_frame = ctk.CTkFrame(
                 self.devices_scrollable,
-                fg_color=("#ffffff", "#1e293b") if idx % 2 == 0 else ("#f8fafc", "#162031"),
-                height=45
+                fg_color=("#ffffff", "#1e293b")
+                if idx % 2 == 0
+                else ("#f8fafc", "#162031"),
+                height=45,
             )
             row_frame.pack(fill="x", pady=2)
             row_frame.pack_propagate(False)
@@ -1663,19 +1745,21 @@ class ACLManagerV5(ctk.CTk):
             f_status.pack_propagate(False)
 
             status = dev.get("status", "Offline").lower()
-            is_active = "active" in status or status == "-"
+            is_active = "active" in status or "idle" in status or status == "-"
             status_color = "#10b981" if is_active else "#64748b"
             status_text = "Active" if is_active else "Offline"
 
             ind_sub = ctk.CTkFrame(f_status, fg_color="transparent")
             ind_sub.pack(expand=True)
-            ctk.CTkLabel(ind_sub, text="●", text_color=status_color, font=ctk.CTkFont(size=14)).pack(side="left")
+            ctk.CTkLabel(
+                ind_sub, text="●", text_color=status_color, font=ctk.CTkFont(size=14)
+            ).pack(side="left")
             ctk.CTkLabel(
                 ind_sub,
                 text=status_text,
                 font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
                 text_color=status_color,
-                padx=4
+                padx=4,
             ).pack(side="left")
 
             # 2. Hostname
@@ -1686,7 +1770,7 @@ class ACLManagerV5(ctk.CTk):
                 f_host,
                 text=dev.get("hostname"),
                 font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
-                anchor="w"
+                anchor="w",
             ).pack(side="left", fill="both", expand=True)
 
             # 3. IP Address
@@ -1698,14 +1782,18 @@ class ACLManagerV5(ctk.CTk):
                 text=dev.get("ips", [""])[0],
                 font=ctk.CTkFont(family="Consolas", size=12),
                 anchor="w",
-                text_color=("#475569", "#94a3b8")
+                text_color=("#475569", "#94a3b8"),
             ).pack(side="left", fill="both", expand=True)
 
             # 4. OS Column
             f_os = ctk.CTkFrame(row_frame, width=100, fg_color="transparent")
             f_os.pack(side="left", fill="both", padx=5)
             f_os.pack_propagate(False)
-            ctk.CTkLabel(f_os, text=dev.get("os", "Unknown").capitalize(), font=ctk.CTkFont(family="Segoe UI", size=11)).pack(expand=True)
+            ctk.CTkLabel(
+                f_os,
+                text=dev.get("os", "Unknown").capitalize(),
+                font=ctk.CTkFont(family="Segoe UI", size=11),
+            ).pack(expand=True)
 
             # 5. Badges/Owners Column
             f_tags = ctk.CTkFrame(row_frame, width=300, fg_color="transparent")
@@ -1720,31 +1808,35 @@ class ACLManagerV5(ctk.CTk):
 
             if dev_tags:
                 for t in dev_tags:
-                    t_chip = ctk.CTkFrame(chips_c, fg_color=("#ffedd5", "#5c3a21"), corner_radius=5)
+                    t_chip = ctk.CTkFrame(
+                        chips_c, fg_color=("#ffedd5", "#5c3a21"), corner_radius=5
+                    )
                     t_chip.pack(side="left", padx=2, pady=3)
                     ctk.CTkLabel(
                         t_chip,
                         text=t.replace("tag:", "🏷️ "),
                         font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
                         text_color=("#9a3412", "#ffb088"),
-                        padx=5
+                        padx=5,
                     ).pack()
             elif owner:
-                o_chip = ctk.CTkFrame(chips_c, fg_color=("#e0f2fe", "#1e3b5a"), corner_radius=5)
+                o_chip = ctk.CTkFrame(
+                    chips_c, fg_color=("#e0f2fe", "#1e3b5a"), corner_radius=5
+                )
                 o_chip.pack(side="left", padx=2, pady=3)
                 ctk.CTkLabel(
                     o_chip,
                     text=f"👤 {owner}",
                     font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
                     text_color=("#0369a1", "#bae6fd"),
-                    padx=5
+                    padx=5,
                 ).pack()
             else:
                 ctk.CTkLabel(
                     chips_c,
                     text="Untagged / Unowned device",
                     font=ctk.CTkFont(family="Segoe UI", size=10, slant="italic"),
-                    text_color=("#64748b", "#94a3b8")
+                    text_color=("#64748b", "#94a3b8"),
                 ).pack(side="left", fill="y")
 
             btn_manage = ctk.CTkButton(
@@ -1756,7 +1848,9 @@ class ACLManagerV5(ctk.CTk):
                 text_color=("#475569", "#cbd5e1"),
                 hover_color=("#cbd5e1", "#334155"),
                 font=ctk.CTkFont(size=14),
-                command=lambda dev_name=dev.get("hostname"): self.manage_device_tag_owners(dev_name)
+                command=lambda dev_name=dev.get("hostname"): (
+                    self.manage_device_tag_owners(dev_name)
+                ),
             )
             btn_manage.pack(side="right", padx=5, pady=8)
 
@@ -1783,11 +1877,15 @@ class ACLManagerV5(ctk.CTk):
                 self.owners_chips_frame,
                 text="No owners defined. This tag is currently orphaned.",
                 font=ctk.CTkFont(slant="italic"),
-                text_color="#ef4444"
+                text_color="#ef4444",
             ).pack(side="left")
         else:
             for o in owners:
-                chip = ctk.CTkFrame(self.owners_chips_frame, fg_color=("#f3e8ff", "#3b2a5c"), corner_radius=6)
+                chip = ctk.CTkFrame(
+                    self.owners_chips_frame,
+                    fg_color=("#f3e8ff", "#3b2a5c"),
+                    corner_radius=6,
+                )
                 chip.pack(side="left", padx=4, pady=4)
 
                 disp_owner = o.replace("group:", "👥 ").replace("autogroup:", "⚙️ ")
@@ -1796,7 +1894,7 @@ class ACLManagerV5(ctk.CTk):
                     text=disp_owner,
                     font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
                     text_color=("#6b21a8", "#d8b4fe"),
-                    padx=8
+                    padx=8,
                 ).pack(side="left")
 
                 btn_del = ctk.CTkButton(
@@ -1808,7 +1906,7 @@ class ACLManagerV5(ctk.CTk):
                     text_color=("#6b21a8", "#d8b4fe"),
                     hover_color=("#e9d5ff", "#581c87"),
                     font=ctk.CTkFont(size=12, weight="bold"),
-                    command=lambda name=o: self.remove_owner_direct(name)
+                    command=lambda name=o: self.remove_owner_direct(name),
                 )
                 btn_del.pack(side="left", padx=(0, 4))
 
@@ -1837,11 +1935,15 @@ class ACLManagerV5(ctk.CTk):
                 text="No outbound access rules originating from this tag.",
                 font=ctk.CTkFont(slant="italic"),
                 text_color=("#64748b", "#94a3b8"),
-                pady=20
+                pady=20,
             ).pack(fill="x")
         else:
             for idx, r in outbound_rules:
-                row_f = ctk.CTkFrame(self.outbound_rules_scroll, fg_color=("#ffffff", "#1e293b"), height=38)
+                row_f = ctk.CTkFrame(
+                    self.outbound_rules_scroll,
+                    fg_color=("#ffffff", "#1e293b"),
+                    height=38,
+                )
                 row_f.pack(fill="x", pady=2)
                 row_f.pack_propagate(False)
 
@@ -1851,11 +1953,13 @@ class ACLManagerV5(ctk.CTk):
                     font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
                     width=70,
                     anchor="w",
-                    padx=10
+                    padx=10,
                 ).pack(side="left")
 
                 dst_raw = ", ".join(r.get("dst", []))
-                dst_target, dst_ports = dst_raw.rsplit(":", 1) if ":" in dst_raw else (dst_raw, "*")
+                dst_target, dst_ports = (
+                    dst_raw.rsplit(":", 1) if ":" in dst_raw else (dst_raw, "*")
+                )
 
                 dst_chip_color = ("#ffedd5", "#5c3a21")
                 dst_text_color = ("#9a3412", "#ffb088")
@@ -1876,17 +1980,23 @@ class ACLManagerV5(ctk.CTk):
                     text=f"{dst_icon}{dst_target}",
                     font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
                     text_color=dst_text_color,
-                    padx=6
+                    padx=6,
                 ).pack()
 
-                port_box = ctk.CTkFrame(row_f, fg_color=("#f1f5f9", "#0f172a"), corner_radius=4, border_width=1, border_color=("#cbd5e1", "#334155"))
+                port_box = ctk.CTkFrame(
+                    row_f,
+                    fg_color=("#f1f5f9", "#0f172a"),
+                    corner_radius=4,
+                    border_width=1,
+                    border_color=("#cbd5e1", "#334155"),
+                )
                 port_box.pack(side="left", padx=5, pady=5)
                 ctk.CTkLabel(
                     port_box,
                     text=dst_ports,
                     font=ctk.CTkFont(family="Consolas", size=10, weight="bold"),
                     text_color=("#475569", "#94a3b8"),
-                    padx=5
+                    padx=5,
                 ).pack()
 
                 btn_del = ctk.CTkButton(
@@ -1897,13 +2007,14 @@ class ACLManagerV5(ctk.CTk):
                     fg_color=("#fee2e2", "#7f1d1d"),
                     text_color=("#ef4444", "#fecaca"),
                     hover_color=("#fecaca", "#991b1b"),
-                    command=lambda rule_id=idx: self.delete_rule_by_index(rule_id)
+                    command=lambda rule_id=idx: self.delete_rule_by_index(rule_id),
                 )
                 btn_del.pack(side="right", padx=10)
 
     def create_tag(self):
         d = ctk.CTkInputDialog(
-            text="New tag name (we'll prepend 'tag:' automatically):", title="Create Tag"
+            text="New tag name (we'll prepend 'tag:' automatically):",
+            title="Create Tag",
         )
         tag = d.get_input()
         if tag:
@@ -1988,7 +2099,10 @@ class ACLManagerV5(ctk.CTk):
             return
         owners = self.acl_data.get("tagOwners", {}).get(self.current_tag, [])
         if owner in owners:
-            if messagebox.askyesno("Confirm Remove", f"Remove '{owner}' as an owner of '{self.current_tag}'?"):
+            if messagebox.askyesno(
+                "Confirm Remove",
+                f"Remove '{owner}' as an owner of '{self.current_tag}'?",
+            ):
                 self.acl_data["tagOwners"][self.current_tag].remove(owner)
                 self.refresh_ui()
                 self.select_tag(self.current_tag)
@@ -2014,7 +2128,12 @@ class ACLManagerV5(ctk.CTk):
     def create_custom_rule(self):
         srcs = ["*"] + self.get_all_tags() + self.get_all_groups()
         dsts = ["*"] + self.get_all_tags()
-        d = CustomDialog(self, "Create Access Rule", ["Select Source:", "Select Destination:"], [srcs, dsts])
+        d = CustomDialog(
+            self,
+            "Create Access Rule",
+            ["Select Source:", "Select Destination:"],
+            [srcs, dsts],
+        )
         if d.result:
             s, dst, p = d.result
             self.acl_data.setdefault("acls", []).append(
@@ -2049,7 +2168,9 @@ class ACLManagerV5(ctk.CTk):
             messagebox.showerror("Error", f"Could not edit rule: {e}")
 
     def delete_rule_by_index(self, idx):
-        if messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete Access Rule #{idx}?"):
+        if messagebox.askyesno(
+            "Confirm Delete", f"Are you sure you want to delete Access Rule #{idx}?"
+        ):
             try:
                 del self.acl_data["acls"][idx]
                 self.refresh_ui()
@@ -2059,7 +2180,8 @@ class ACLManagerV5(ctk.CTk):
     # ---- GROUP MANAGER ACTIONS ----
     def add_group(self):
         d = ctk.CTkInputDialog(
-            text="New Group Name (we'll prepend 'group:' automatically):", title="Create Group"
+            text="New Group Name (we'll prepend 'group:' automatically):",
+            title="Create Group",
         )
         g = d.get_input()
         if g:
@@ -2092,7 +2214,10 @@ class ACLManagerV5(ctk.CTk):
                 self.refresh_ui()
 
     def delete_group_direct(self, group_name):
-        if messagebox.askyesno("Confirm Delete", f"Permanently delete group '{group_name}' and all associated references?"):
+        if messagebox.askyesno(
+            "Confirm Delete",
+            f"Permanently delete group '{group_name}' and all associated references?",
+        ):
             self.acl_data["groups"].pop(group_name, None)
             for t, o_list in self.acl_data.get("tagOwners", {}).items():
                 if group_name in o_list:
@@ -2116,7 +2241,10 @@ class ACLManagerV5(ctk.CTk):
     def remove_user_from_group_direct(self, group_name, user_email):
         if group_name in self.acl_data.get("groups", {}):
             if user_email in self.acl_data["groups"][group_name]:
-                if messagebox.askyesno("Confirm Remove", f"Remove user '{user_email}' from group '{group_name}'?"):
+                if messagebox.askyesno(
+                    "Confirm Remove",
+                    f"Remove user '{user_email}' from group '{group_name}'?",
+                ):
                     self.acl_data["groups"][group_name].remove(user_email)
                     self.refresh_ui()
 
@@ -2143,10 +2271,14 @@ class ACLManagerV5(ctk.CTk):
         device_tags = device.get("tags", [])
         all_groups = list(self.acl_data.get("groups", {}).keys())
 
-        d = DeviceTagOwnersDialog(self, hostname, device_tags, self.acl_data, all_groups)
+        d = DeviceTagOwnersDialog(
+            self, hostname, device_tags, self.acl_data, all_groups
+        )
         if d.saved:
             self.refresh_ui()
-            messagebox.showinfo("Success", f"Tag owners updated for device '{hostname}' tags.")
+            messagebox.showinfo(
+                "Success", f"Tag owners updated for device '{hostname}' tags."
+            )
 
     # ---- DEVICE LIST ACTIONS ----
     def _build_md_tag_map(self):
@@ -2158,7 +2290,11 @@ class ACLManagerV5(ctk.CTk):
         try:
             with open(md_path, "r", encoding="utf-8") as f:
                 for line in f:
-                    if not line.startswith("|") or "IP Address" in line or "---" in line:
+                    if (
+                        not line.startswith("|")
+                        or "IP Address" in line
+                        or "---" in line
+                    ):
                         continue
                     parts = [p.strip() for p in line.split("|") if p.strip()]
                     # Columns: IP, Hostname, Owner, OS, Status, Tags
@@ -2217,7 +2353,11 @@ class ACLManagerV5(ctk.CTk):
                     return ""
 
                 def parse_dev(node, label=""):
-                    host = f"{node.get('HostName', 'Unknown')} ({label})" if label else node.get("HostName", "Unknown")
+                    host = (
+                        f"{node.get('HostName', 'Unknown')} ({label})"
+                        if label
+                        else node.get("HostName", "Unknown")
+                    )
                     ips = node.get("TailscaleIPs", [""])
                     os_type = node.get("OS", "Unknown")
                     # Tags can be null in the JSON — normalize to an empty list
@@ -2225,12 +2365,14 @@ class ACLManagerV5(ctk.CTk):
                     owner = resolve_owner(node)
 
                     return {
-                        'hostname': host,
-                        'ips': ips,
-                        'owner': owner,
-                        'os': os_type,
-                        'status': 'Active' if node.get('Active', False) or label == "Self" else 'Offline',
-                        'tags': tags
+                        "hostname": host,
+                        "ips": ips,
+                        "owner": owner,
+                        "os": os_type,
+                        "status": "Active"
+                        if node.get("Active", False) or label == "Self"
+                        else "Offline",
+                        "tags": tags,
                     }
 
                 self.cli_devices.append(parse_dev(self_node, "Self"))
@@ -2249,11 +2391,51 @@ class ACLManagerV5(ctk.CTk):
                         if md_tags:
                             dev["tags"] = md_tags
 
-                messagebox.showinfo("Success", f"Successfully loaded {len(self.cli_devices)} devices from Tailscale status CLI.")
+                # Generate MD file if it doesn't exist
+                md_path = os.path.join(
+                    os.path.dirname(__file__), "Tailscale Devices.md"
+                )
+                if not os.path.exists(md_path):
+                    self._write_devices_md(self.cli_devices, md_path)
+                    messagebox.showinfo(
+                        "Generated",
+                        f"Successfully loaded {len(self.cli_devices)} devices from Tailscale status CLI.\n\nGenerated 'Tailscale Devices.md' — now showing in topology.",
+                    )
+                else:
+                    messagebox.showinfo(
+                        "Success",
+                        f"Successfully loaded {len(self.cli_devices)} devices from Tailscale status CLI.",
+                    )
             else:
-                messagebox.showerror("CLI Error", f"Tailscale CLI execution failed with code {result.returncode}")
+                messagebox.showerror(
+                    "CLI Error",
+                    f"Tailscale CLI execution failed with code {result.returncode}",
+                )
         except Exception as e:
-            messagebox.showwarning("CLI Offline", f"Could not connect to Tailscale CLI status service: {e}\nDisplaying local workspace cache.")
+            messagebox.showwarning(
+                "CLI Offline",
+                f"Could not connect to Tailscale CLI status service: {e}\nDisplaying local workspace cache.",
+            )
+
+    def _write_devices_md(self, devices, path):
+        """Write a list of device dicts to a Markdown table file."""
+        header = "| IP Address | Hostname | Owner | OS | Status | Tags |"
+        sep = "|---|---|---|---|---|---|"
+        rows = []
+        for dev in devices:
+            ip = (dev.get("ips") or [""])[0]
+            hostname = dev.get("hostname", "Unknown")
+            owner = dev.get("owner", "")
+            os_type = dev.get("os", "Unknown")
+            status = dev.get("status", "-")
+            tags = dev.get("tags", [])
+            tags_str = ", ".join(tags) if tags else "-"
+            rows.append(
+                f"| {ip} | {hostname} | {owner} | {os_type} | {status} | {tags_str} |"
+            )
+        content = f"# Tailscale Devices\n\n{header}\n{sep}\n" + "\n".join(rows) + "\n"
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
 
     # ---- RAW JSON UTILS ----
     def copy_raw_to_clipboard(self):
@@ -2272,7 +2454,9 @@ class ACLManagerV5(ctk.CTk):
             self.txt_raw.delete("0.0", "end")
             self.txt_raw.insert("0.0", formatted)
         except Exception as e:
-            messagebox.showerror("JSON Syntax Error", f"Failed to parse text as valid JSON: {e}")
+            messagebox.showerror(
+                "JSON Syntax Error", f"Failed to parse text as valid JSON: {e}"
+            )
 
     def apply_raw(self):
         try:
@@ -2355,7 +2539,7 @@ class ACLManagerV5(ctk.CTk):
                     "Auto-Fixed Missing Tag Owners",
                     f"The following tags were referenced in rules but missing from tagOwners. "
                     f"They have been automatically added with 'autogroup:admin' as the default owner:{tag_list}\n\n"
-                    f"You can manage their owners in the Network Tags panel."
+                    f"You can manage their owners in the Network Tags panel.",
                 )
                 self.refresh_ui()
 
@@ -2382,7 +2566,9 @@ class ACLManagerV5(ctk.CTk):
                     self.current_filepath = p
                     with open(p, "r", encoding="utf-8") as f:
                         self.acl_data = json5.loads(f.read())
-                    self.lbl_status.configure(text=f"Loaded Profile:\n{os.path.basename(p)}")
+                    self.lbl_status.configure(
+                        text=f"Loaded Profile:\n{os.path.basename(p)}"
+                    )
                     self.refresh_ui()
         except Exception as e:
             print(f"Error autoloading last config profile: {e}")
@@ -2405,10 +2591,15 @@ class ACLManagerV5(ctk.CTk):
         # Models Dropdown
         self.combo_models = ctk.CTkComboBox(
             top_bar,
-            values=["qwen3.6:35b-a3b", "qwen2.5-coder:7b", "deepseek-r1:70b", "gemma4:31b"],
+            values=[
+                "qwen3.6:35b-a3b",
+                "qwen2.5-coder:7b",
+                "deepseek-r1:70b",
+                "gemma4:31b",
+            ],
             width=220,
             fg_color=("#f1f5f9", "#0f172a"),
-            border_color=("#cbd5e1", "#334155")
+            border_color=("#cbd5e1", "#334155"),
         )
         self.combo_models.pack(side="right", padx=(10, 0))
         self.combo_models.set("qwen3.6:35b-a3b")
@@ -2422,7 +2613,7 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#fecaca", "#991b1b"),
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
             width=100,
-            command=self.clear_chat
+            command=self.clear_chat,
         )
         btn_clear.pack(side="right", padx=(10, 0))
 
@@ -2435,7 +2626,7 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#cbd5e1", "#475569"),
             font=ctk.CTkFont(family="Segoe UI", weight="bold"),
             width=110,
-            command=self.fetch_ollama_models
+            command=self.fetch_ollama_models,
         )
         btn_fetch_models.pack(side="right")
 
@@ -2444,13 +2635,15 @@ class ACLManagerV5(ctk.CTk):
             self.page_chatbot,
             fg_color=("#ffffff", "#1e293b"),
             border_width=1,
-            border_color=("#e2e8f0", "#334155")
+            border_color=("#e2e8f0", "#334155"),
         )
         self.chat_container.grid(row=1, column=0, sticky="nsew")
         self.chat_container.grid_rowconfigure(0, weight=1)
         self.chat_container.grid_columnconfigure(0, weight=1)
 
-        self.chat_scrollable = ctk.CTkScrollableFrame(self.chat_container, fg_color="transparent")
+        self.chat_scrollable = ctk.CTkScrollableFrame(
+            self.chat_container, fg_color="transparent"
+        )
         self.chat_scrollable.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         # 3. Bottom Input Row
@@ -2462,7 +2655,7 @@ class ACLManagerV5(ctk.CTk):
             placeholder_text="Ask a question about the topology or request changes (e.g. 'add tag:database owned by group:shiner-tech')...",
             height=40,
             fg_color=("#ffffff", "#0f172a"),
-            border_color=("#cbd5e1", "#334155")
+            border_color=("#cbd5e1", "#334155"),
         )
         self.chat_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
         self.chat_entry.bind("<Return>", lambda e: self.send_chat_message())
@@ -2476,12 +2669,14 @@ class ACLManagerV5(ctk.CTk):
             hover_color=("#2563eb", "#1d4ed8"),
             text_color="white",
             font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
-            command=self.send_chat_message
+            command=self.send_chat_message,
         )
         self.btn_send_chat.pack(side="right")
 
         self.chat_history = []
-        self.add_system_message("AI assistant initialized. Ask questions or request changes to your Tailscale network topology.")
+        self.add_system_message(
+            "AI assistant initialized. Ask questions or request changes to your Tailscale network topology."
+        )
         self.fetch_ollama_models()
 
     def add_system_message(self, text):
@@ -2491,7 +2686,7 @@ class ACLManagerV5(ctk.CTk):
             font=ctk.CTkFont(family="Segoe UI", size=12, slant="italic"),
             text_color=("#64748b", "#94a3b8"),
             justify="center",
-            pady=10
+            pady=10,
         )
         lbl.pack(fill="x", pady=4)
         self.scroll_chat_to_bottom()
@@ -2511,7 +2706,7 @@ class ACLManagerV5(ctk.CTk):
             justify="left",
             wraplength=600,
             padx=12,
-            pady=8
+            pady=8,
         )
         lbl.pack()
         self.scroll_chat_to_bottom()
@@ -2522,10 +2717,12 @@ class ACLManagerV5(ctk.CTk):
 
         bubble = ctk.CTkFrame(
             frame,
-            fg_color=("#f1f5f9", "#0f172a") if not text.startswith("Applying changes") else ("#ecfdf5", "#064e3b"),
+            fg_color=("#f1f5f9", "#0f172a")
+            if not text.startswith("Applying changes")
+            else ("#ecfdf5", "#064e3b"),
             border_width=1,
             border_color=("#cbd5e1", "#1e293b"),
-            corner_radius=12
+            corner_radius=12,
         )
         bubble.pack(side="left", padx=10)
 
@@ -2533,11 +2730,13 @@ class ACLManagerV5(ctk.CTk):
             bubble,
             text=text,
             font=ctk.CTkFont(family="Segoe UI", size=13),
-            text_color=("#1e293b", "#cbd5e1") if not text.startswith("Applying changes") else ("#10b981", "#34d399"),
+            text_color=("#1e293b", "#cbd5e1")
+            if not text.startswith("Applying changes")
+            else ("#10b981", "#34d399"),
             justify="left",
             wraplength=600,
             padx=12,
-            pady=8
+            pady=8,
         )
         lbl.pack()
         self.scroll_chat_to_bottom()
@@ -2567,7 +2766,12 @@ class ACLManagerV5(ctk.CTk):
                     else:
                         self.after(0, lambda: self.combo_models.set(models[0]))
             except Exception:
-                fallback = ["qwen3.6:35b-a3b", "qwen2.5-coder:7b", "deepseek-r1:70b", "gemma4:31b"]
+                fallback = [
+                    "qwen3.6:35b-a3b",
+                    "qwen2.5-coder:7b",
+                    "deepseek-r1:70b",
+                    "gemma4:31b",
+                ]
                 self.after(0, lambda: self.combo_models.configure(values=fallback))
                 self.after(0, lambda: self.combo_models.set(fallback[0]))
 
@@ -2591,7 +2795,9 @@ class ACLManagerV5(ctk.CTk):
         self.chat_entry.configure(state="disabled")
 
         model = self.combo_models.get()
-        threading.Thread(target=self.query_ollama, args=(prompt, model), daemon=True).start()
+        threading.Thread(
+            target=self.query_ollama, args=(prompt, model), daemon=True
+        ).start()
 
     def query_ollama(self, user_prompt, model_name):
         devices_list = []
@@ -2615,82 +2821,80 @@ class ACLManagerV5(ctk.CTk):
             "```json\n"
             "[\n"
             "  {\n"
-            "    \"action\": \"add_tag\",\n"
-            "    \"tag\": \"tag:name\",\n"
-            "    \"owners\": [\"group:admin\"]\n"
+            '    "action": "add_tag",\n'
+            '    "tag": "tag:name",\n'
+            '    "owners": ["group:admin"]\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"delete_tag\",\n"
-            "    \"tag\": \"tag:name\"\n"
+            '    "action": "delete_tag",\n'
+            '    "tag": "tag:name"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"rename_tag\",\n"
-            "    \"old\": \"tag:old\",\n"
-            "    \"new\": \"tag:new\"\n"
+            '    "action": "rename_tag",\n'
+            '    "old": "tag:old",\n'
+            '    "new": "tag:new"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"add_owner\",\n"
-            "    \"tag\": \"tag:name\",\n"
-            "    \"owner\": \"group:name\"\n"
+            '    "action": "add_owner",\n'
+            '    "tag": "tag:name",\n'
+            '    "owner": "group:name"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"remove_owner\",\n"
-            "    \"tag\": \"tag:name\",\n"
-            "    \"owner\": \"group:name\"\n"
+            '    "action": "remove_owner",\n'
+            '    "tag": "tag:name",\n'
+            '    "owner": "group:name"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"add_group\",\n"
-            "    \"group\": \"group:name\"\n"
+            '    "action": "add_group",\n'
+            '    "group": "group:name"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"delete_group\",\n"
-            "    \"group\": \"group:name\"\n"
+            '    "action": "delete_group",\n'
+            '    "group": "group:name"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"rename_group\",\n"
-            "    \"old\": \"group:old\",\n"
-            "    \"new\": \"group:new\"\n"
+            '    "action": "rename_group",\n'
+            '    "old": "group:old",\n'
+            '    "new": "group:new"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"add_user_to_group\",\n"
-            "    \"group\": \"group:name\",\n"
-            "    \"user\": \"user@email.com\"\n"
+            '    "action": "add_user_to_group",\n'
+            '    "group": "group:name",\n'
+            '    "user": "user@email.com"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"remove_user_from_group\",\n"
-            "    \"group\": \"group:name\",\n"
-            "    \"user\": \"user@email.com\"\n"
+            '    "action": "remove_user_from_group",\n'
+            '    "group": "group:name",\n'
+            '    "user": "user@email.com"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"create_rule\",\n"
-            "    \"src\": \"source\",\n"
-            "    \"dst\": \"dest\",\n"
-            "    \"ports\": \"*\"\n"
+            '    "action": "create_rule",\n'
+            '    "src": "source",\n'
+            '    "dst": "dest",\n'
+            '    "ports": "*"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"edit_rule\",\n"
-            "    \"index\": 0,\n"
-            "    \"src\": \"source\",\n"
-            "    \"dst\": \"dest\",\n"
-            "    \"ports\": \"*\"\n"
+            '    "action": "edit_rule",\n'
+            '    "index": 0,\n'
+            '    "src": "source",\n'
+            '    "dst": "dest",\n'
+            '    "ports": "*"\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"delete_rule\",\n"
-            "    \"index\": 0\n"
+            '    "action": "delete_rule",\n'
+            '    "index": 0\n'
             "  },\n"
             "  {\n"
-            "    \"action\": \"tag_device\",\n"
-            "    \"device\": \"hostname\",\n"
-            "    \"tag\": \"tag:name\"\n"
+            '    "action": "tag_device",\n'
+            '    "device": "hostname",\n'
+            '    "tag": "tag:name"\n'
             "  }\n"
             "]\n"
             "```\n"
             "Make sure your explanation is concise and structured."
         )
 
-        messages = [
-            {"role": "system", "content": system_instruction}
-        ]
+        messages = [{"role": "system", "content": system_instruction}]
 
         for role, text in self.chat_history:
             messages.append({"role": role, "content": text})
@@ -2700,16 +2904,12 @@ class ACLManagerV5(ctk.CTk):
 
         try:
             url = "http://100.106.252.1:11434/api/chat"
-            payload = json.dumps({
-                "model": model_name,
-                "messages": messages,
-                "stream": False
-            }).encode("utf-8")
+            payload = json.dumps(
+                {"model": model_name, "messages": messages, "stream": False}
+            ).encode("utf-8")
 
             req = urllib.request.Request(
-                url,
-                data=payload,
-                headers={"Content-Type": "application/json"}
+                url, data=payload, headers={"Content-Type": "application/json"}
             )
 
             response = urllib.request.urlopen(req, timeout=120)
@@ -2743,7 +2943,9 @@ class ACLManagerV5(ctk.CTk):
                     json_actions = json.loads(json_str.strip())
                     cleaned_text = (pre_text + "\n" + post_text).strip()
             except Exception as e:
-                cleaned_text += f"\n\n[Warning: Found JSON action block, but failed to parse: {e}]"
+                cleaned_text += (
+                    f"\n\n[Warning: Found JSON action block, but failed to parse: {e}]"
+                )
 
         self.add_assistant_message(cleaned_text)
 
@@ -2763,7 +2965,9 @@ class ACLManagerV5(ctk.CTk):
             elif a_type == "add_owner":
                 desc += f"• Add Owner '{act.get('owner')}' to Tag '{act.get('tag')}'\n"
             elif a_type == "remove_owner":
-                desc += f"• Remove Owner '{act.get('owner')}' from Tag '{act.get('tag')}'\n"
+                desc += (
+                    f"• Remove Owner '{act.get('owner')}' from Tag '{act.get('tag')}'\n"
+                )
             elif a_type == "add_group":
                 desc += f"• Create User Group: {act.get('group')}\n"
             elif a_type == "delete_group":
@@ -2771,7 +2975,9 @@ class ACLManagerV5(ctk.CTk):
             elif a_type == "rename_group":
                 desc += f"• Rename Group: {act.get('old')} ➔ {act.get('new')}\n"
             elif a_type == "add_user_to_group":
-                desc += f"• Add User '{act.get('user')}' to Group '{act.get('group')}'\n"
+                desc += (
+                    f"• Add User '{act.get('user')}' to Group '{act.get('group')}'\n"
+                )
             elif a_type == "remove_user_from_group":
                 desc += f"• Remove User '{act.get('user')}' from Group '{act.get('group')}'\n"
             elif a_type == "create_rule":
@@ -2781,7 +2987,9 @@ class ACLManagerV5(ctk.CTk):
             elif a_type == "delete_rule":
                 desc += f"• Delete Access Rule #{act.get('index')}\n"
             elif a_type == "tag_device":
-                desc += f"• Tag Device '{act.get('device')}' with Tag '{act.get('tag')}'\n"
+                desc += (
+                    f"• Tag Device '{act.get('device')}' with Tag '{act.get('tag')}'\n"
+                )
             else:
                 desc += f"• Unknown Action: {a_type}\n"
 
@@ -2798,9 +3006,17 @@ class ACLManagerV5(ctk.CTk):
                     elif a_type == "delete_tag":
                         tag = act.get("tag")
                         self.acl_data.get("tagOwners", {}).pop(tag, None)
-                        self.acl_data["acls"] = [r for r in self.acl_data.get("acls", []) if tag not in r.get("src", [])]
+                        self.acl_data["acls"] = [
+                            r
+                            for r in self.acl_data.get("acls", [])
+                            if tag not in r.get("src", [])
+                        ]
                         for r in self.acl_data.get("acls", []):
-                            r["dst"] = [d for d in r.get("dst", []) if not d.startswith(f"{tag}:")]
+                            r["dst"] = [
+                                d
+                                for d in r.get("dst", [])
+                                if not d.startswith(f"{tag}:")
+                            ]
                     elif a_type == "rename_tag":
                         old = act.get("old")
                         new = act.get("new")
@@ -2809,12 +3025,21 @@ class ACLManagerV5(ctk.CTk):
                             self.acl_data["tagOwners"][new] = owners
                             for r in self.acl_data.get("acls", []):
                                 if old in r.get("src", []):
-                                    r["src"] = [new if s == old else s for s in r["src"]]
-                                r["dst"] = [d.replace(f"{old}:", f"{new}:", 1) if d.startswith(f"{old}:") else d for d in r.get("dst", [])]
+                                    r["src"] = [
+                                        new if s == old else s for s in r["src"]
+                                    ]
+                                r["dst"] = [
+                                    d.replace(f"{old}:", f"{new}:", 1)
+                                    if d.startswith(f"{old}:")
+                                    else d
+                                    for d in r.get("dst", [])
+                                ]
                     elif a_type == "add_owner":
                         tag = act.get("tag")
                         o = act.get("owner")
-                        self.acl_data.setdefault("tagOwners", {}).setdefault(tag, []).append(o)
+                        self.acl_data.setdefault("tagOwners", {}).setdefault(
+                            tag, []
+                        ).append(o)
                     elif a_type == "remove_owner":
                         tag = act.get("tag")
                         o = act.get("owner")
@@ -2847,11 +3072,13 @@ class ACLManagerV5(ctk.CTk):
                         src = act.get("src")
                         dst = act.get("dst")
                         ports = act.get("ports", "*")
-                        self.acl_data.setdefault("acls", []).append({
-                            "action": "accept",
-                            "src": [src],
-                            "dst": [f"{dst}:{ports}"]
-                        })
+                        self.acl_data.setdefault("acls", []).append(
+                            {
+                                "action": "accept",
+                                "src": [src],
+                                "dst": [f"{dst}:{ports}"],
+                            }
+                        )
                     elif a_type == "edit_rule":
                         idx = act.get("index")
                         if idx < len(self.acl_data.get("acls", [])):
@@ -2868,9 +3095,14 @@ class ACLManagerV5(ctk.CTk):
                         self.update_device_tag_in_file(device_host, tag)
 
                 self.refresh_ui()
-                self.add_assistant_message("Applying changes... Done! Network configuration updated successfully.")
+                self.add_assistant_message(
+                    "Applying changes... Done! Network configuration updated successfully."
+                )
             except Exception as ex:
-                messagebox.showerror("Error Applying Actions", f"An error occurred while executing changes: {ex}")
+                messagebox.showerror(
+                    "Error Applying Actions",
+                    f"An error occurred while executing changes: {ex}",
+                )
 
     def update_device_tag_in_file(self, hostname, tag_name, new_owner=None):
         md_path = "Tailscale Devices.md"
@@ -2901,7 +3133,9 @@ class ACLManagerV5(ctk.CTk):
 
             if not has_tags_col:
                 lines[header_index] = header_line.rstrip(" |") + " | Tags |\n"
-                lines[separator_index] = lines[separator_index].strip().rstrip(" |") + "---| \n"
+                lines[separator_index] = (
+                    lines[separator_index].strip().rstrip(" |") + "---| \n"
+                )
 
             for idx, line in enumerate(lines):
                 if idx <= separator_index or not line.strip().startswith("|"):
@@ -2993,14 +3227,22 @@ class ACLManagerV5(ctk.CTk):
                         changed = False
                         for t in t_list:
                             t_full = t if t.startswith("tag:") else f"tag:{t}"
-                            old_full = old_tag if old_tag.startswith("tag:") else f"tag:{old_tag}"
-                            new_full = new_tag if new_tag.startswith("tag:") else f"tag:{new_tag}"
+                            old_full = (
+                                old_tag
+                                if old_tag.startswith("tag:")
+                                else f"tag:{old_tag}"
+                            )
+                            new_full = (
+                                new_tag
+                                if new_tag.startswith("tag:")
+                                else f"tag:{new_tag}"
+                            )
                             if t_full == old_full:
                                 updated_tags.append(new_full)
                                 changed = True
                             else:
                                 updated_tags.append(t)
-                        
+
                         if changed:
                             parts[6] = f" {', '.join(updated_tags)} "
                             new_line = "|".join(parts)
@@ -3061,12 +3303,16 @@ class ACLManagerV5(ctk.CTk):
                         changed = False
                         for t in t_list:
                             t_full = t if t.startswith("tag:") else f"tag:{t}"
-                            del_full = tag_name if tag_name.startswith("tag:") else f"tag:{tag_name}"
+                            del_full = (
+                                tag_name
+                                if tag_name.startswith("tag:")
+                                else f"tag:{tag_name}"
+                            )
                             if t_full == del_full:
                                 changed = True
                             else:
                                 updated_tags.append(t)
-                        
+
                         if changed:
                             if not updated_tags:
                                 parts[6] = " - "

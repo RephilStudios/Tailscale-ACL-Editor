@@ -9,15 +9,11 @@
             "cody.poupore@shinertechnologies.com"
         ],
         "group:peterson": [
-            "nick.peterson@outlook.com"
+            "petersonlandscape906@gmail.com"
         ]
     },
     "tagOwners": {
         "tag:nickpeterson-server": [
-            "autogroup:admin",
-            "group:shiner-tech"
-        ],
-        "tag:nickpeterson-client": [
             "autogroup:admin",
             "group:shiner-tech"
         ],
@@ -32,6 +28,13 @@
         "tag:license-server": [
             "autogroup:admin",
             "group:shiner-tech"
+        ],
+        "tag:shinerconnect-server": [
+            "autogroup:admin",
+            "group:shiner-tech"
+        ],
+        "tag:shiner-proxmox": [
+            "autogroup:admin"
         ]
     },
     "acls": [
@@ -57,15 +60,6 @@
             "action": "accept",
             "src": [
                 "group:shiner-tech"
-            ],
-            "dst": [
-                "tag:nickpeterson-server:*"
-            ]
-        },
-        {
-            "action": "accept",
-            "src": [
-                "tag:nickpeterson-client"
             ],
             "dst": [
                 "tag:nickpeterson-server:*"
@@ -110,19 +104,37 @@
         {
             "action": "accept",
             "src": [
-                "group:peterson"
+                "tag:shinerconnect-server"
             ],
             "dst": [
-                "tag:nickpeterson-client:*"
+                "tag:license-server:8005"
             ]
         },
         {
             "action": "accept",
             "src": [
-                "autogroup:member"
+                "group:shiner-tech"
             ],
             "dst": [
-                "autogroup:member:*"
+                "tag:shinerconnect-server:*"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "group:shiner-tech"
+            ],
+            "dst": [
+                "tag:shiner-proxmox:*"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "group:peterson"
+            ],
+            "dst": [
+                "tag:nickpeterson-server:*"
             ]
         }
     ],
