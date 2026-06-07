@@ -10,6 +10,9 @@
         ],
         "group:peterson": [
             "petersonlandscape906@gmail.com"
+        ],
+        "group:floyd": [
+            "tyler@floydsflooring.com"
         ]
     },
     "tagOwners": {
@@ -34,6 +37,9 @@
             "group:shiner-tech"
         ],
         "tag:shiner-proxmox": [
+            "autogroup:admin"
+        ],
+        "tag:tylerfloyd-server": [
             "autogroup:admin"
         ]
     },
@@ -153,6 +159,24 @@
             ],
             "dst": [
                 "group:shiner-tech:*"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "group:floyd"
+            ],
+            "dst": [
+                "tag:tylerfloyd-server:*"
+            ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "tag:tylerfloyd-server"
+            ],
+            "dst": [
+                "tag:license-server:8005"
             ]
         }
     ],
