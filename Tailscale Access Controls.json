@@ -178,6 +178,15 @@
             "dst": [
                 "tag:license-server:8005"
             ]
+        },
+        {
+            "action": "accept",
+            "src": [
+                "group:shiner-tech"
+            ],
+            "dst": [
+                "tag:tylerfloyd-server:*"
+            ]
         }
     ],
     "ssh": [

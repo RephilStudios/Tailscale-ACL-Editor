@@ -2955,6 +2955,9 @@ class ACLManagerV5(ctk.CTk):
     def process_ai_actions(self, actions):
         desc = "The AI Assistant proposes the following updates:\n\n"
         for act in actions:
+            if not isinstance(act, dict):
+                desc += f"• [Warning: Skipped non-object entry: {act}]\n"
+                continue
             a_type = act.get("action")
             if a_type == "add_tag":
                 desc += f"• Create Network Tag: {act.get('tag')} (owners: {act.get('owners')})\n"
@@ -2998,6 +3001,8 @@ class ACLManagerV5(ctk.CTk):
         if messagebox.askyesno("Verify Proposed Config Updates", desc):
             try:
                 for act in actions:
+                    if not isinstance(act, dict):
+                        continue
                     a_type = act.get("action")
                     if a_type == "add_tag":
                         tag = act.get("tag")
